@@ -1,0 +1,21 @@
+{
+    "name": "d3yii2/d3pop3",
+    "description": "Read emails an save in table",
+    "keywords": ["yii2","email","pop3"],
+    "type": "yii-module",
+    "license": "BSD-2-Clause",
+    "authors": [
+        {
+            "name": "Uldis Nelsons",
+            "email": "uldis@weberp.lv"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "d3yii2\\d3pop3\\": ""
+        }
+    }
+}
