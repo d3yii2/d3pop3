@@ -2,8 +2,8 @@
     "name": "d3yii2/d3pop3",
     "description": "Read emails an save in table",
     "keywords": ["yii2","email","pop3"],
-    "type": "yii-module",
-    "license": "BSD-2-Clause",
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Uldis Nelsons",
@@ -11,7 +11,9 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=5.4.0",
+        "d3yii2/d3files": "dev-master",
+        "afinogen89/get-mail": "*"
     },
     "autoload": {
         "psr-4": {
