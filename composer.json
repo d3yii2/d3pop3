@@ -13,7 +13,8 @@
     "require": {
         "php": ">=5.4.0",
         "d3yii2/d3files": "dev-master",
-        "afinogen89/get-mail": "*"
+        "afinogen89/get-mail": "*",
+        "dmstr/yii2-migrate-command": "@stable"
     },
     "autoload": {
         "psr-4": {
