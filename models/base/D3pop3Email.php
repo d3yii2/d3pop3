@@ -49,7 +49,7 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['model_name', 'model_id', 'receive_datetime', 'read_datetime'], 'required'],
+            [['model_name', 'model_id', 'receive_datetime'], 'required'],
             [['model_id'], 'integer'],
             [['receive_datetime', 'read_datetime'], 'safe'],
             [['subject', 'body', 'to', 'cc', 'status'], 'string'],
