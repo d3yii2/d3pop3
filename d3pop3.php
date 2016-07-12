@@ -9,8 +9,9 @@ class d3pop3 extends \yii\base\Module
 
     public $controllerNamespace = 'd3yii2\d3pop3\controllers';
 
-    public $pop3boxes = [];
-
+    public $ConfigEmailContainerData = [];
+    
+    public $EmailContainers = [];
 
     public function init()
     {

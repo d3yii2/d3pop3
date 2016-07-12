@@ -10,16 +10,15 @@ use Yii;
  * This is the base-model class for table "d3pop3_emails".
  *
  * @property string $id
- * @property string $model_name
- * @property string $model_id
  * @property string $receive_datetime
- * @property string $read_datetime
  * @property string $subject
  * @property string $body
  * @property string $from
  * @property string $to
  * @property string $cc
- * @property string $status
+ * @property string $email_container_class
+ *
+ * @property \d3yii2\d3pop3\models\D3pop3EmailModel[] $d3pop3EmailModels
  * @property string $aliasModel
  */
 abstract class D3pop3Email extends \yii\db\ActiveRecord
@@ -27,13 +26,6 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
 
 
 
-    /**
-    * ENUM field values
-    */
-    const STATUS_NEW = 'NEW';
-    const STATUS_READ = 'READ';
-    const STATUS_DELETED = 'DELETED';
-    var $enum_labels = false;
     /**
      * @inheritdoc
      */
@@ -49,18 +41,10 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['model_name', 'model_id', 'receive_datetime'], 'required'],
-            [['model_id'], 'integer'],
-            [['receive_datetime', 'read_datetime'], 'safe'],
-            [['subject', 'body', 'to', 'cc', 'status'], 'string'],
-            [['model_name'], 'string', 'max' => 50],
-            [['from'], 'string', 'max' => 256],
-            ['status', 'in', 'range' => [
-                    self::STATUS_NEW,
-                    self::STATUS_READ,
-                    self::STATUS_DELETED,
-                ]
-            ]
+            [['receive_datetime'], 'required'],
+            [['receive_datetime'], 'safe'],
+            [['subject', 'body', 'to', 'cc'], 'string'],
+            [['from', 'email_container_class'], 'string', 'max' => 256]
         ];
     }
 
@@ -71,16 +55,13 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('d3pop3', 'ID'),
-            'model_name' => Yii::t('d3pop3', 'Model'),
-            'model_id' => Yii::t('d3pop3', 'Model Record'),
             'receive_datetime' => Yii::t('d3pop3', 'Received'),
-            'read_datetime' => Yii::t('d3pop3', 'Read'),
             'subject' => Yii::t('d3pop3', 'Subject'),
             'body' => Yii::t('d3pop3', 'Body'),
             'from' => Yii::t('d3pop3', 'From'),
             'to' => Yii::t('d3pop3', 'To'),
             'cc' => Yii::t('d3pop3', 'CC'),
-            'status' => Yii::t('d3pop3', 'Status'),
+            'email_container_class' => Yii::t('d3pop3', 'Email Container'),
         ];
     }
 
@@ -90,46 +71,25 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function attributeHints()
     {
         return array_merge(parent::attributeHints(), [
-            'model_name' => Yii::t('d3pop3', 'Model'),
-            'model_id' => Yii::t('d3pop3', 'Model Record'),
             'receive_datetime' => Yii::t('d3pop3', 'Received'),
-            'read_datetime' => Yii::t('d3pop3', 'Read'),
             'subject' => Yii::t('d3pop3', 'Subject'),
             'body' => Yii::t('d3pop3', 'Body'),
             'from' => Yii::t('d3pop3', 'From'),
             'to' => Yii::t('d3pop3', 'To'),
             'cc' => Yii::t('d3pop3', 'CC'),
-            'status' => Yii::t('d3pop3', 'Status'),
+            'email_container_class' => Yii::t('d3pop3', 'Email Container'),
         ]);
     }
 
-
-
-
     /**
-     * get column status enum value label
-     * @param string $value
-     * @return string
+     * @return \yii\db\ActiveQuery
      */
-    public static function getStatusValueLabel($value){
-        $labels = self::optsStatus();
-        if(isset($labels[$value])){
-            return $labels[$value];
-        }
-        return $value;
-    }
-
-    /**
-     * column status ENUM value labels
-     * @return array
-     */
-    public static function optsStatus()
+    public function getD3pop3EmailModels()
     {
-        return [
-            self::STATUS_NEW => Yii::t('d3pop3', self::STATUS_NEW),
-            self::STATUS_READ => Yii::t('d3pop3', self::STATUS_READ),
-            self::STATUS_DELETED => Yii::t('d3pop3', self::STATUS_DELETED),
-        ];
+        return $this->hasMany(\d3yii2\d3pop3\models\D3pop3EmailModel::className(), ['email_id' => 'id']);
     }
+
+
+
 
 }

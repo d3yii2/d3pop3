@@ -10,4 +10,5 @@ use \d3yii2\d3pop3\models\base\D3pop3Email as BaseD3pop3Email;
  */
 class D3pop3Email extends BaseD3pop3Email
 {
+    
 }
