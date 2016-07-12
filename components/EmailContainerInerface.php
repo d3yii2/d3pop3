@@ -1,6 +1,6 @@
 <?php
 
-namespace app\components;
+namespace d3yii2\d3pop3\components;
 
 use afinogen89\getmail\message\Message;
 

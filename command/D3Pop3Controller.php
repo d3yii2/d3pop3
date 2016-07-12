@@ -3,7 +3,7 @@
 namespace d3yii2\d3pop3\command;
 
 use yii\console\Controller;
-use \d3yii2\d3pop3\components\ReadEmails;
+use d3yii2\d3pop3\components\ReadEmails;
 
 class D3Pop3Controller extends Controller {
 
@@ -17,7 +17,7 @@ class D3Pop3Controller extends Controller {
         } else {
             $eContainers = [$container];
         }
-
+        
         foreach ($eContainers as $containerClass) {
 
             if (!class_exists($containerClass)) {
@@ -26,7 +26,7 @@ class D3Pop3Controller extends Controller {
                 $error = true;
                 continue;
             }
-                var_dump($containerClass);exit;
+                
             $cc = new $containerClass;
             $error = $error || !ReadEmails::readPop3($cc, $containerClass);
             
