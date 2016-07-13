@@ -10,7 +10,10 @@ class ConfigEmailContainer implements EmailContainerInerface {
 
     public $data;
     public $currentData;
-
+    public $modelName;
+    public $modelSearchField;
+    public $serachByEmailField;
+    
     public function __construct() {
         $this->data = \Yii::$app->getModule('D3Pop3')->ConfigEmailContainerData;
     }
@@ -23,6 +26,9 @@ class ConfigEmailContainer implements EmailContainerInerface {
             return false;
         }
         $this->currentData = array_shift($this->data);
+        $this->modelName = $this->currentData['model'];
+        $this->modelSearchField = $this->currentData['model_search_field'];
+        $this->serachByEmailField = $this->currentData['search_by_email_field'];
         return true;
     }
 
@@ -51,13 +57,29 @@ class ConfigEmailContainer implements EmailContainerInerface {
      */
     public function getModelPk(Message $msg) {
         $header = $msg->getHeaders();
-        $testData = Test::find()
+        
+        $searchValue = $header->getTo();
+        switch ($this->serachByEmailField) {
+            case 'to':
+                $searchValue = $header->getTo();
+                break;
+            case 'from':
+                $searchValue = $header->getFrom();
+                break;
+
+            default:
+                break;
+        }
+        
+        $model = new $this->modelName;
+        
+        $modelData = $model::find()
                 ->select('id')
-                ->where(['description' => $header->getTo()])
+                ->where([$this->modelSearchField => $searchValue])
                 ->asArray()
                 ->all();
-        if (!$testData) {
-            return false;
+        if (!$modelData) {
+            return [];
         }
 
         $ids = [];
