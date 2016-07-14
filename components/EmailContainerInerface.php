@@ -17,14 +17,9 @@ interface EmailContainerInerface {
     public function getPop3ConnectionDetails();
 
     /**
-     * get model name, where attach email
-     */
-    public function getModelName();
-
-    /**
      * get recird primary key value, where attach email
      * @param \app\components\D3pop3Email $emailModel
-     * @return array list of primary keys
+     * @return array list of primary key and model name
      */
-    public function getModelPk(Message $msg);
+    public function getModelForattach(Message $msg);
 }

@@ -36,7 +36,7 @@ class ReadEmails {
             for ($i = 1; $i <= $countMessages; $i++) {
                 $msg = $storage->getMessage($i);
 
-                $modelPkList = $cc->getModelPk($msg);
+                $attachModelList = $cc->getModelForattach($msg);
 
                 $header = $msg->getHeaders();
                 echo $i . ' Subject:' . $header->getSubject() . PHP_EOL;
@@ -56,10 +56,11 @@ class ReadEmails {
                     $error = true;
                     continue;
                 }
-                foreach ($modelPkList as $modelPk) {
+                foreach ($attachModelList as $attachModel) {
                     $emailModel = new D3pop3EmailModel();
-                    $emailModel->model_name = $cc->getModelName();
-                    $emailModel->model_id = $modelPk;
+                    $emailModel->email_id = $email->id;
+                    $emailModel->model_name = $attachModel['model_name'];
+                    $emailModel->model_id = $attachModel['id'];
                     $emailModel->save();
                 }
                 $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log)$/i';

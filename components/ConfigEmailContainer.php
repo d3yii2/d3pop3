@@ -13,7 +13,7 @@ class ConfigEmailContainer implements EmailContainerInerface {
     public $modelName;
     public $modelSearchField;
     public $serachByEmailField;
-    
+
     public function __construct() {
         $this->data = \Yii::$app->getModule('D3Pop3')->ConfigEmailContainerData;
     }
@@ -48,14 +48,7 @@ class ConfigEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function getModelName() {
-        return 'app\models\test';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getModelPk(Message $msg) {
+    public function getModelForattach(Message $msg) {
         $header = $msg->getHeaders();
         
         $searchValue = $header->getTo();
@@ -83,8 +76,14 @@ class ConfigEmailContainer implements EmailContainerInerface {
         }
 
         $ids = [];
-        foreach ($testData as $td) {
-            $ids[] = $td['id'];
+        
+        $reflection       = new \ReflectionClass($this->modelName);
+        $shortModelName = $reflection->getShortName();
+        foreach ($modelData as $td) {
+            $ids[] = [
+                'id' => $td['id'],
+                'model_name' => $shortModelName,
+                    ];
         }
         return $ids;
     }
