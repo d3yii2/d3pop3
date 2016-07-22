@@ -47,7 +47,8 @@ class m160712_170102_init extends Migration
 	 */
 	public function down()
 	{
-		$this->dropTable('d3files_type');
+		$this->dropTable('d3pop3_email_models');
+        $this->dropTable('d3pop3_emails');
 	}
 
 	/**
