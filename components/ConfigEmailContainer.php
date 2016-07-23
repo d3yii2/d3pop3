@@ -5,6 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3yii2\d3pop3\components\EmailContainerInerface;
 use app\models\Test;
 use afinogen89\getmail\message\Message;
+use PhpImap\IncomingMail;
 
 class ConfigEmailContainer implements EmailContainerInerface {
 
@@ -44,20 +45,35 @@ class ConfigEmailContainer implements EmailContainerInerface {
                     'ssl' => $this->currentData['ssl'],
         ];
     }
+    
+    public function getImapPath(){
+        return '{' . $this->currentData['host'] . ':993/imap/ssl}INBOX';
+    }
+
+    public function getUserName(){
+        return $this->currentData['user'];
+    }
+
+    public function getPassword(){
+        return $this->currentData['password'];
+    }
 
     /**
      * @inheritdoc
      */
-    public function getModelForattach(Message $msg) {
-        $header = $msg->getHeaders();
+    public function getModelForattach(IncomingMail $msg) {
         
-        $searchValue = $header->getTo();
+        reset($msg->to);
+        $to = $searchValue = key($msg->to);
+
+        $from = $msg->fromAddress;
+        
         switch ($this->serachByEmailField) {
             case 'to':
-                $searchValue = $header->getTo();
+                $searchValue = $to;
                 break;
             case 'from':
-                $searchValue = $header->getFrom();
+                $searchValue = $from;
                 break;
 
             default:

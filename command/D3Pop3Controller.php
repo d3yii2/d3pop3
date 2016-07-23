@@ -5,6 +5,7 @@ namespace d3yii2\d3pop3\command;
 use yii\console\Controller;
 use d3yii2\d3pop3\components\ReadEmails;
 
+
 class D3Pop3Controller extends Controller {
 
     /**
@@ -17,18 +18,17 @@ class D3Pop3Controller extends Controller {
         } else {
             $eContainers = [$container];
         }
-        
         foreach ($eContainers as $containerClass) {
-
+            echo 'Container class:' . $containerClass.PHP_EOL;            
             if (!class_exists($containerClass)) {
-
+                echo 'Can not found email container class:' . $containerClass.PHP_EOL;
                 \Yii::error('Can not found email container class:' . $containerClass);
                 $error = true;
                 continue;
             }
                 
             $cc = new $containerClass;
-            $error = $error || !ReadEmails::readPop3($cc, $containerClass);
+            $error = $error || !ReadEmails::readImap($cc, $containerClass);
             
         }
 
@@ -38,6 +38,14 @@ class D3Pop3Controller extends Controller {
         }
 
         return self::EXIT_CODE_NORMAL;
+    }
+    
+    public function actionTest() {
+        $mailbox = new Mailbox('{imap.gmail.com:993/imap/ssl}INBOX', 'd3yii2d3pop3@gmail.com', '2uvsKCrDU7MkXQKPxkXs');
+
+        // Read all messaged into an array:
+            $mailsIds = $mailbox->searchMailbox('ALL');
+            var_dump($mailbox);
     }
 
 }
