@@ -5,7 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3yii2\d3pop3\components\EmailContainerInerface;
 use app\models\Test;
 use afinogen89\getmail\message\Message;
-use PhpImap\IncomingMail;
+use unyii2\imap\IncomingMail;
 
 class ConfigEmailContainer implements EmailContainerInerface {
 

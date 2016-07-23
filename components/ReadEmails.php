@@ -8,10 +8,12 @@
 
 namespace d3yii2\d3pop3\components;
 
+use Yii;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use unyii2\imap\Mailbox;
+use unyii2\imap\ImapConnection;
 
 
 class ReadEmails {
@@ -20,7 +22,7 @@ class ReadEmails {
         $error = false;
         while ($cc->featchData()) {
 
-            $imapConnection = new unyii2\imap\ImapConnection();
+            $imapConnection = new ImapConnection();
             $imapConnection->imapPath = $cc->getImapPath();
             $imapConnection->imapLogin = $cc->getUserName();
             $imapConnection->imapPassword = $cc->getPassword();
@@ -81,17 +83,17 @@ class ReadEmails {
 
                 /** @var Attachment $t */
                 foreach ($msg->getAttachments() as $t) {
-                    var_dump($t);
-                    continue;
                     echo $i . ' A:' . $t->name . PHP_EOL;
 
                     /**
                      *  save to d3file
                      */
                     try {
-                        D3files::saveFile($t->name, 'D3pop3Email', $email->id, $t->filepath, $fileTypes);
+                        D3files::saveFile($t->name, D3pop3Email::className(), $email->id, $t->filePath, $fileTypes);
                     } catch (\Exception $e) {
-                        \Yii::error('Container class: ' . $containerClass . '; Can not save attachment. Attribute: ' . json_encode($email->attributes) . '; Error: ' . $e->getMessage());
+                        $errorMessage = 'Container class: ' . $containerClass . '; Can not save attachment. Error: ' . $e->getMessage();
+                        echo $errorMessage . PHP_EOL;
+                        \Yii::error($errorMessage);
                         $error = true;
                         continue;
                     }
