@@ -14,7 +14,8 @@ use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use unyii2\imap\Mailbox;
 use unyii2\imap\ImapConnection;
-
+use d3yii2\d3pop3\models\D3pop3EmailError;
+use d3yii2\d3pop3\models\D3pop3EmailAddress;
 
 class ReadEmails {
 
@@ -26,7 +27,7 @@ class ReadEmails {
             $imapConnection->imapPath = $cc->getImapPath();
             $imapConnection->imapLogin = $cc->getUserName();
             $imapConnection->imapPassword = $cc->getPassword();
-            //$imapConnection->serverEncoding = 'encoding'; // utf-8 default.
+            $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
             $imapConnection->attachmentsDir =  Yii::getAlias('@runtime/temp');            
 
             /**
@@ -34,7 +35,6 @@ class ReadEmails {
              */
             try {
                 $mailbox = new Mailbox($imapConnection);
-                var_dump($mailbox);
             } catch (\Exception $e) {
                 \Yii::error('Container class: ' . $containerClass . '; Can not connect to: ' . $imapPath . '; Error: ' . $e->getMessage());
                 return false;
@@ -50,25 +50,60 @@ class ReadEmails {
             foreach ($mailsIds as $i => $mailId) {
                 
                 $msg = $mailbox->getMail($mailId);
-                
                 echo $i . ' Subject:' . $msg->subject . PHP_EOL;
                 echo $i . ' Date:' . $msg->date . PHP_EOL;
+                echo $i . ' MessageId:' . $msg->head->message_id . PHP_EOL;
 
+                if(D3pop3Email::findOne(['email_id' => $msg->head->message_id])){
+                    echo $i . ' Message already loaded' . PHP_EOL;
+                    continue;
+                }
+                
                 $email = new D3pop3Email();
                 //$msg->date
+                $email->email_id = $msg->head->message_id;
+                $email->email_datetime = $msg->date;
                 $email->receive_datetime = new \yii\db\Expression('NOW()');
                 $email->subject = $msg->subject;
-                $email->body = $msg->textPlain;
+                $email->body = $msg->textHtml;
+                $email->body_plain = $msg->textPlain;
                 $email->from = $msg->fromAddress;
-                reset($msg->to);
-                $email->to = key($msg->to);
-                //$email->cc = $header->getCC();
+                $email->from_name = $msg->fromName;
                 $email->email_container_class = $containerClass;
 
                 if (!$email->save()) {
-                    \Yii::error('Container class: ' . $containerClass . '; Can not save email. Attribute: ' . json_encode($email->attributes) . '; Error: ' . json_encode($email->getErrors()));
+                    $errorList =  \yii\helpers\Json::encode($email->getErrors());
+                    echo $errorList . PHP_EOL;
+                    \Yii::error('Container class: ' . $containerClass . '; Can not save email. Error: ' . $errorList);
                     $error = true;
                     continue;
+                }
+
+                foreach ($msg->to as $toEmail => $toName){
+                    $ea = new D3pop3EmailAddress();
+                    $ea->email_id = $email->id;
+                    $ea->address_type = D3pop3EmailAddress::ADDRESS_TYPE_TO;
+                    $ea->email_address = $toEmail;
+                    $ea->name = $toName;
+                    $ea->save();
+                }
+                
+                foreach ($msg->cc as $ccEmail => $ccName){
+                    $ea = new D3pop3EmailAddress();
+                    $ea->email_id = $email->id;
+                    $ea->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
+                    $ea->email_address = $ccEmail;
+                    $ea->name = $ccName;
+                    $ea->save();
+                }
+
+                foreach ($msg->replyTo as $rtEmail => $rtName){
+                    $ea = new D3pop3EmailAddress();
+                    $ea->email_id = $email->id;
+                    $ea->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
+                    $ea->email_address = $rtEmail;
+                    $ea->name = $rtName;
+                    $ea->save();
                 }
                 
                 $attachModelList = $cc->getModelForattach($msg);
@@ -79,7 +114,7 @@ class ReadEmails {
                     $emailModel->model_id = $attachModel['id'];
                     $emailModel->save();
                 }
-                $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log)$/i';
+                $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i';
 
                 /** @var Attachment $t */
                 foreach ($msg->getAttachments() as $t) {
@@ -91,11 +126,14 @@ class ReadEmails {
                     try {
                         D3files::saveFile($t->name, D3pop3Email::className(), $email->id, $t->filePath, $fileTypes);
                     } catch (\Exception $e) {
-                        $errorMessage = 'Container class: ' . $containerClass . '; Can not save attachment. Error: ' . $e->getMessage();
+                        $errorMessage = Yii::t('d3pop3', 'Can not save attachment.') 
+                                        . Yii::t('d3pop3', 'Error: ') 
+                                        . $e->getMessage();
                         echo $errorMessage . PHP_EOL;
-                        \Yii::error($errorMessage);
-                        $error = true;
-                        continue;
+                        $error = new D3pop3EmailError();
+                        $error->email_id = $email->id;                        
+                        $error->message = $errorMessage;  
+                        $error->save();
                     }
                 }
                 echo PHP_EOL;

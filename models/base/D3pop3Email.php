@@ -10,14 +10,18 @@ use Yii;
  * This is the base-model class for table "d3pop3_emails".
  *
  * @property string $id
+ * @property string $email_id
+ * @property string $email_datetime
  * @property string $receive_datetime
  * @property string $subject
  * @property string $body
+ * @property string $body_plain
  * @property string $from
- * @property string $to
- * @property string $cc
+ * @property string $from_name
  * @property string $email_container_class
  *
+ * @property \d3yii2\d3pop3\models\D3pop3EmailAddress[] $d3pop3EmailAddresses
+ * @property \d3yii2\d3pop3\models\D3pop3EmailError[] $d3pop3EmailErrors
  * @property \d3yii2\d3pop3\models\D3pop3EmailModel[] $d3pop3EmailModels
  * @property string $aliasModel
  */
@@ -41,10 +45,11 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            [['email_datetime', 'receive_datetime'], 'safe'],
             [['receive_datetime'], 'required'],
-            [['receive_datetime'], 'safe'],
-            [['subject', 'body', 'to', 'cc'], 'string'],
-            [['from', 'email_container_class'], 'string', 'max' => 256]
+            [['subject', 'body', 'body_plain'], 'string'],
+            [['email_id'], 'string', 'max' => 1000],
+            [['from', 'from_name', 'email_container_class'], 'string', 'max' => 256]
         ];
     }
 
@@ -55,12 +60,14 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('d3pop3', 'ID'),
+            'email_id' => Yii::t('d3pop3', 'Email Id'),
+            'email_datetime' => Yii::t('d3pop3', 'Email Datetime'),
             'receive_datetime' => Yii::t('d3pop3', 'Received'),
             'subject' => Yii::t('d3pop3', 'Subject'),
             'body' => Yii::t('d3pop3', 'Body'),
+            'body_plain' => Yii::t('d3pop3', 'Body Plain'),
             'from' => Yii::t('d3pop3', 'From'),
-            'to' => Yii::t('d3pop3', 'To'),
-            'cc' => Yii::t('d3pop3', 'CC'),
+            'from_name' => Yii::t('d3pop3', 'From Name'),
             'email_container_class' => Yii::t('d3pop3', 'Email Container'),
         ];
     }
@@ -71,14 +78,31 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function attributeHints()
     {
         return array_merge(parent::attributeHints(), [
+            'email_id' => Yii::t('d3pop3', 'Email Id'),
             'receive_datetime' => Yii::t('d3pop3', 'Received'),
             'subject' => Yii::t('d3pop3', 'Subject'),
             'body' => Yii::t('d3pop3', 'Body'),
+            'body_plain' => Yii::t('d3pop3', 'Body Plain'),
             'from' => Yii::t('d3pop3', 'From'),
-            'to' => Yii::t('d3pop3', 'To'),
-            'cc' => Yii::t('d3pop3', 'CC'),
+            'from_name' => Yii::t('d3pop3', 'From Name'),
             'email_container_class' => Yii::t('d3pop3', 'Email Container'),
         ]);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getD3pop3EmailAddresses()
+    {
+        return $this->hasMany(\d3yii2\d3pop3\models\D3pop3EmailAddress::className(), ['email_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getD3pop3EmailErrors()
+    {
+        return $this->hasMany(\d3yii2\d3pop3\models\D3pop3EmailError::className(), ['email_id' => 'id']);
     }
 
     /**
