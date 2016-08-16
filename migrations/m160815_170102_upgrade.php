@@ -36,6 +36,16 @@ class m160815_170102_upgrade extends Migration
               PRIMARY KEY (`id`),
               FOREIGN KEY (`email_id`) REFERENCES `blankon20160608`.`d3pop3_emails`(`id`)
             ) ENGINE=INNODB CHARSET=utf8;
+            
+            CREATE TABLE `d3pop3_email_error`(
+                `id` INT(10) UNSIGNED NOT NULL  AUTO_INCREMENT , 
+                `email_id` INT(10) UNSIGNED NOT NULL  COMMENT 'Email' , 
+                `message` TEXT COLLATE utf8_general_ci NOT NULL  COMMENT 'Message' , 
+                PRIMARY KEY (`id`) , 
+                KEY `email_id`(`email_id`) , 
+                CONSTRAINT `d3pop3_email_error_ibfk_1` 
+                FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails` (`id`) 
+            ) ENGINE=INNODB DEFAULT CHARSET='utf8' COLLATE='utf8_general_ci';
 
 
         ");
