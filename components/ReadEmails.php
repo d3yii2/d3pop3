@@ -16,11 +16,16 @@ use unyii2\imap\Mailbox;
 use unyii2\imap\ImapConnection;
 use d3yii2\d3pop3\models\D3pop3EmailError;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
+use yii\helpers\FileHelper;
 
 class ReadEmails {
 
     public static function readImap(EmailContainerInerface $cc, $containerClass) {
+        
         $error = false;
+        
+        $tempDirectory = Yii::getAlias('@runtime/temp');
+        
         while ($cc->featchData()) {
 
             $imapConnection = new ImapConnection();
@@ -28,7 +33,8 @@ class ReadEmails {
             $imapConnection->imapLogin = $cc->getUserName();
             $imapConnection->imapPassword = $cc->getPassword();
             $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
-            $imapConnection->attachmentsDir =  Yii::getAlias('@runtime/temp');            
+            $imapConnection->attachmentsDir =  $tempDirectory;
+            
 
             /**
              * connect to IMAP
@@ -40,6 +46,8 @@ class ReadEmails {
                 return false;
             }
 
+            $mailbox->readMailParts = false;
+            
             $mailsIds = $mailbox->searchMailbox('ALL');
             if(!$mailsIds) {
                 echo 'Mailbox is empty' . PHP_EOL;
@@ -52,16 +60,21 @@ class ReadEmails {
                 $msg = $mailbox->getMail($mailId);
                 echo $i . ' Subject:' . $msg->subject . PHP_EOL;
                 echo $i . ' Date:' . $msg->date . PHP_EOL;
-                echo $i . ' MessageId:' . $msg->head->message_id . PHP_EOL;
+                echo $i . ' MessageId:' . $msg->messageId . PHP_EOL;
 
-                if(D3pop3Email::findOne(['email_id' => $msg->head->message_id])){
+                if(D3pop3Email::findOne(['email_id' => $msg->messageId])){
                     echo $i . ' Message already loaded' . PHP_EOL;
                     continue;
                 }
                 
+                /**
+                 * load attachments and bodies
+                 */
+                $msg = $mailbox->getMailParts($msg);
+                
                 $email = new D3pop3Email();
                 //$msg->date
-                $email->email_id = $msg->head->message_id;
+                $email->email_id = $msg->messageId;
                 $email->email_datetime = $msg->date;
                 $email->receive_datetime = new \yii\db\Expression('NOW()');
                 $email->subject = $msg->subject;
@@ -135,9 +148,19 @@ class ReadEmails {
                         $error->message = $errorMessage;  
                         $error->save();
                     }
+                    
+                    unlink($t->filePath);
                 }
                 echo PHP_EOL;
             }
+        }
+        
+        /**
+         * remove all attachment files
+         */
+        $files = FileHelper::findFiles($tempDirectory);
+        foreach($files as $f){
+            unlink($f);
         }
         return !$error;
     }

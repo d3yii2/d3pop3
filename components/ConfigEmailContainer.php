@@ -63,20 +63,17 @@ class ConfigEmailContainer implements EmailContainerInerface {
      */
     public function getModelForattach(IncomingMail $msg) {
         
-        reset($msg->to);
-        $to = $searchValue = key($msg->to);
-
-        $from = $msg->fromAddress;
-        
         switch ($this->serachByEmailField) {
-            case 'to':
-                $searchValue = $to;
-                break;
             case 'from':
-                $searchValue = $from;
+                $searchValue = $msg->fromAddress;
                 break;
-
-            default:
+            
+            case 'to':
+            default:            
+                $searchValue = [];
+                foreach($msg->to as $email => $name){
+                    $searchValue[] = $email;
+                }
                 break;
         }
         
