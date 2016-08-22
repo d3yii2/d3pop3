@@ -74,6 +74,9 @@ class ConfigEmailContainer implements EmailContainerInerface {
                 foreach($msg->to as $email => $name){
                     $searchValue[] = $email;
                 }
+                foreach($msg->cc as $email => $name){
+                    $searchValue[] = $email;
+                }
                 break;
         }
         
