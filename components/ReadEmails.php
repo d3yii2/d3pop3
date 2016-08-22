@@ -149,7 +149,7 @@ class ReadEmails {
                         $error->save();
                     }
                     
-                    unlink($t->filePath);
+                    //unlink($t->filePath);
                 }
                 echo PHP_EOL;
             }
