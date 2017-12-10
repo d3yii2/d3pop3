@@ -118,7 +118,9 @@ class ReadEmails {
                     $ea->name = $rtName;
                     $ea->save();
                 }
-                
+
+                $cc->setReceiver($email);
+
                 $attachModelList = $cc->getModelForattach($msg);
                 foreach ($attachModelList as $attachModel) {
                     $emailModel = new D3pop3EmailModel();

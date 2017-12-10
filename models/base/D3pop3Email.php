@@ -23,6 +23,7 @@ use Yii;
  * @property \d3yii2\d3pop3\models\D3pop3EmailAddress[] $d3pop3EmailAddresses
  * @property \d3yii2\d3pop3\models\D3pop3EmailError[] $d3pop3EmailErrors
  * @property \d3yii2\d3pop3\models\D3pop3EmailModel[] $d3pop3EmailModels
+ * @property \d3yii2\d3pop3\models\D3pop3SendReceiv[] $d3pop3SendReceivs
  * @property string $aliasModel
  */
 abstract class D3pop3Email extends \yii\db\ActiveRecord
@@ -111,6 +112,14 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
     public function getD3pop3EmailModels()
     {
         return $this->hasMany(\d3yii2\d3pop3\models\D3pop3EmailModel::className(), ['email_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getD3pop3SendReceivs()
+    {
+        return $this->hasMany(\d3yii2\d3pop3\models\D3pop3SendReceiv::className(), ['email_id' => 'id']);
     }
 
 
