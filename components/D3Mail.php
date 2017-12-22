@@ -109,6 +109,7 @@ class D3Mail
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
         $sendReceiv->company_id = $companyId;
+        $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
         $this->sendReceiveList[] = $sendReceiv;
         return $this;
     }

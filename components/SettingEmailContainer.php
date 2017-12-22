@@ -100,6 +100,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_IN;
         $sendReceiv->company_id = $this->record->sys_company_id;
         $sendReceiv->setting_id = $this->record->id;
+        $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
         $sendReceiv->save();
     }
 
