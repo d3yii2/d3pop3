@@ -15,9 +15,10 @@ use Yii;
  * @property integer $company_id
  * @property integer $person_id
  * @property integer $setting_id
+ * @property string $status
  *
  * @property \d3yii2\d3pop3\models\D3pop3Email $email
- * @property \d3yii2\d3pop3\models\D3pop3ConnectingSettings $setting
+ * @property \d3yii2\d3pop3\models\D3pop3ConnectingSetting $setting
  * @property \d3yii2\d3pop3\models\D3pPerson $person
  * @property \d3yii2\d3pop3\models\D3cCompany $company
  * @property string $aliasModel
@@ -32,7 +33,10 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
     */
     const DIRECTION_IN = 'in';
     const DIRECTION_OUT = 'out';
-    var $enum_labels = false;
+    const STATUS_NEW = 'New';
+    const STATUS_READ = 'Read';
+    const STATUS_DELETED = 'Deleted';
+    public $enum_labels = false;
     /**
      * @inheritdoc
      */
@@ -50,7 +54,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
         return [
             [['email_id'], 'required'],
             [['email_id', 'company_id', 'person_id', 'setting_id'], 'integer'],
-            [['direction'], 'string'],
+            [['direction', 'status'], 'string'],
             [['email_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3Email::className(), 'targetAttribute' => ['email_id' => 'id']],
             [['setting_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3ConnectingSettings::className(), 'targetAttribute' => ['setting_id' => 'id']],
             [['person_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pPerson::className(), 'targetAttribute' => ['person_id' => 'id']],
@@ -58,6 +62,12 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             ['direction', 'in', 'range' => [
                     self::DIRECTION_IN,
                     self::DIRECTION_OUT,
+                ]
+            ],
+            ['status', 'in', 'range' => [
+                    self::STATUS_NEW,
+                    self::STATUS_READ,
+                    self::STATUS_DELETED,
                 ]
             ]
         ];
@@ -75,6 +85,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             'company_id' => Yii::t('d3pop3', 'Company'),
             'person_id' => Yii::t('d3pop3', 'Person'),
             'setting_id' => Yii::t('d3pop3', 'Setting'),
+            'status' => Yii::t('d3pop3', 'Status'),
         ];
     }
 
@@ -89,6 +100,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             'company_id' => Yii::t('d3pop3', 'Company'),
             'person_id' => Yii::t('d3pop3', 'Person'),
             'setting_id' => Yii::t('d3pop3', 'Setting'),
+            'status' => Yii::t('d3pop3', 'Status'),
         ]);
     }
 
@@ -149,6 +161,32 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
         return [
             self::DIRECTION_IN => Yii::t('d3pop3', self::DIRECTION_IN),
             self::DIRECTION_OUT => Yii::t('d3pop3', self::DIRECTION_OUT),
+        ];
+    }
+
+    /**
+     * get column status enum value label
+     * @param string $value
+     * @return string
+     */
+    public static function getStatusValueLabel($value){
+        $labels = self::optsStatus();
+        if(isset($labels[$value])){
+            return $labels[$value];
+        }
+        return $value;
+    }
+
+    /**
+     * column status ENUM value labels
+     * @return array
+     */
+    public static function optsStatus()
+    {
+        return [
+            self::STATUS_NEW => Yii::t('d3pop3', self::STATUS_NEW),
+            self::STATUS_READ => Yii::t('d3pop3', self::STATUS_READ),
+            self::STATUS_DELETED => Yii::t('d3pop3', self::STATUS_DELETED),
         ];
     }
 
