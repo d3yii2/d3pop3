@@ -17,6 +17,28 @@ class D3Mail
     /** @var string */
     private $emailId;
 
+    /** @var string */
+    private $subject;
+
+    /** @var string */
+    private $bodyPlain;
+
+    private $from_name;
+
+    private $from_email;
+
+    /** @var D3pop3EmailAddress[] */
+    private $addressList = [];
+
+    /** @var array D3pop3SendReceiv[] */
+    private $sendReceiveList = [];
+
+    /** @var array  D3pop3EmailModel */
+    private $emailModelList = [];
+
+    /** @var array */
+    private $attachmentList = [];
+
     /**
      * @param array $emailIdList
      * @return $this
@@ -67,28 +89,6 @@ class D3Mail
         return $this;
     }
 
-    /** @var string */
-    private $subject;
-
-    /** @var string */
-    private $bodyPlain;
-
-    private $from_name;
-
-    private $from_email;
-
-    /** @var D3pop3EmailAddress[] */
-    private $addressList = [];
-
-    /** @var array D3pop3SendReceiv[] */
-    private $sendReceiveList = [];
-
-    /** @var array  D3pop3EmailModel */
-    private $emailModelList = [];
-
-    /** @var array */
-    private $attachmentList = [];
-
     /**
      * @param string $email
      * @param string $name
@@ -104,10 +104,20 @@ class D3Mail
         return $this;
     }
 
-    public function addSendReceiveOutFromCompany($companyId)
+    public function addSendReceiveOutFromCompany(int $companyId)
     {
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
+        $sendReceiv->company_id = $companyId;
+        $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
+        $this->sendReceiveList[] = $sendReceiv;
+        return $this;
+    }
+
+    public function addSendReceiveToInCompany(int $companyId)
+    {
+        $sendReceiv = new D3pop3SendReceiv();
+        $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_IN;
         $sendReceiv->company_id = $companyId;
         $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
         $this->sendReceiveList[] = $sendReceiv;
@@ -178,6 +188,11 @@ class D3Mail
         }
 
 
+    }
+
+    public function getAttachments()
+    {
+        return D3files::getRecordFilesList(D3pop3Email::className(),$this->email->id);
     }
 
     public function send(): bool

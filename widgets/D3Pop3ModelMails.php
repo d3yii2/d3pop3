@@ -80,12 +80,18 @@ class D3Pop3ModelMails extends Widget
                   \' \',
                   aTo.`email_address`
                 )
-              ) `to` 
+              ) `to` ,
+              GROUP_CONCAT(companyTo.`name` SEPARATOR \'; \') `directToCompany`
             FROM
               `d3pop3_email_models` em 
               INNER JOIN `d3pop3_emails` e 
-                ON em.`email_id` = e.id 
-              INNER JOIN `d3pop3_email_address` aTo 
+                ON em.`email_id` = e.id
+              LEFT OUTER JOIN `d3pop3_send_receiv` srTo
+                ON e.id = srTo.`email_id` 
+                AND srTo.`direction` = \'in\'
+              LEFT OUTER JOIN `d3c_company` companyTo
+                ON companyTo.id = srTo.`company_id`                  
+              LEFT OUTER JOIN `d3pop3_email_address` aTo 
                 ON e.id = aTo.`email_id` 
                 AND aTo.`address_type` = :to 
             WHERE em.model_name = :modelName 
@@ -115,7 +121,7 @@ class D3Pop3ModelMails extends Widget
             <tr>
                 <td>'.$row['email_datetime'].'</td>
                 <td>'.$row['subject'].'</td>
-                <td>'.$row['to'].'</td>
+                <td>'.$row['to'].$row['directToCompany'].'</td>
             </tr>';
         }
 
