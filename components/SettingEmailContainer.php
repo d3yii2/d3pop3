@@ -45,6 +45,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['user'] = $settings['user'];
         $this->currentData['password'] = $settings['password'];
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
+        $this->currentData['port'] = (int)($settings['port']??993);
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
         $this->serachByEmailField = $dataRow->search_by_email_field;
@@ -56,17 +57,17 @@ class SettingEmailContainer implements EmailContainerInerface {
      * @inheritdoc
      */
     public function getPop3ConnectionDetails() {
-        return
-                [
-                    'host' => $this->currentData['host'],
-                    'user' => $this->currentData['user'],
-                    'password' => $this->currentData['password'],
-                    'ssl' => $this->currentData['ssl'],
+        return [
+                'host' => $this->currentData['host'],
+                'user' => $this->currentData['user'],
+                'password' => $this->currentData['password'],
+                'ssl' => $this->currentData['ssl'],
+                'port' => $this->currentData['port'],
         ];
     }
     
     public function getImapPath(){
-        return '{' . $this->currentData['host'] . ':993/imap/ssl}INBOX';
+        return '{' . $this->currentData['host'] . ':'.$this->currentData['port'].'/imap/ssl}INBOX';
     }
 
     public function getUserName(){

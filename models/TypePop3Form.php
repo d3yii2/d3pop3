@@ -19,11 +19,21 @@ class TypePop3Form extends Model
     /** @var bool */
     public $ssl = false;
 
+    /** @var int */
+    public $port;
+
+    public function init()
+    {
+        parent::init();
+        $this->port = 993;
+    }
+
     public function rules()
     {
         return [
-            [['host', 'user', 'password'], 'required'],
+            [['host', 'user', 'password', 'port'], 'required'],
             [['host', 'user', 'password'], 'string'],
+            [['port'], 'integer'],
             [['ssl'], 'boolean', 'trueValue' => '1', 'falseValue' => '0'],
 
         ];
@@ -36,6 +46,7 @@ class TypePop3Form extends Model
             'user' => \Yii::t('d3pop3', 'User Name'),
             'password' => \Yii::t('d3pop3', 'Password'),
             'ssl' => \Yii::t('d3pop3', 'Use SSL'),
+            'port' => \Yii::t('d3pop3', 'Port'),
         ];
     }
 
