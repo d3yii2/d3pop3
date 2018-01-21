@@ -46,6 +46,13 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['password'] = $settings['password'];
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
         $this->currentData['port'] = (int)($settings['port']??993);
+        
+        if(isset($settings['directory'])) {
+            $this->currentData['directory'] = $settings['directory'];
+        } else {
+            $this->currentData['directory'] = 'INBOX';
+        }
+
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
         $this->serachByEmailField = $dataRow->search_by_email_field;
@@ -67,7 +74,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     }
     
     public function getImapPath(){
-        return '{' . $this->currentData['host'] . ':'.$this->currentData['port'].'/imap/ssl}INBOX';
+        return '{' . $this->currentData['host'] . ':'.$this->currentData['port'].'/imap/ssl}'.$this->currentData['directory'];
     }
 
     public function getUserName(){
