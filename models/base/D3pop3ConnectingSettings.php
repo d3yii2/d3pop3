@@ -33,6 +33,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
     * ENUM field values
     */
     const TYPE_POP3 = 'pop3';
+    const TYPE_GMAIL = 'gmail';
+    const TYPE_IMAP = 'imap';
     public $enum_labels = false;
     /**
      * @inheritdoc
@@ -57,6 +59,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
             [['person_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pPerson::className(), 'targetAttribute' => ['person_id' => 'id']],
             ['type', 'in', 'range' => [
                     self::TYPE_POP3,
+                    self::TYPE_GMAIL,
+                    self::TYPE_IMAP,
                 ]
             ]
         ];
@@ -143,6 +147,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
     {
         return [
             self::TYPE_POP3 => Yii::t('d3pop3', self::TYPE_POP3),
+            self::TYPE_GMAIL => Yii::t('d3pop3', self::TYPE_GMAIL),
+            self::TYPE_IMAP => Yii::t('d3php3', self::TYPE_IMAP),
         ];
     }
 

@@ -5,7 +5,7 @@ namespace d3yii2\d3pop3\models;
 use yii\base\Model;
 use yii\helpers\Json;
 
-class TypePop3Form extends Model
+class TypeImapForm extends Model
 {
     /** @var string */
     public $host;
@@ -22,16 +22,20 @@ class TypePop3Form extends Model
     /** @var int */
     public $port;
 
+    /** @var string */
+    public $directory;
+
     public function init()
     {
         parent::init();
         $this->port = 993;
+        $this->directory = 'INBOX';
     }
 
     public function rules()
     {
         return [
-            [['host', 'user', 'password', 'port'], 'required'],
+            [['host', 'user', 'password', 'port', 'directory'], 'required'],
             [['host', 'user', 'password'], 'string'],
             [['port'], 'integer'],
             [['ssl'], 'boolean', 'trueValue' => '1', 'falseValue' => '0'],
