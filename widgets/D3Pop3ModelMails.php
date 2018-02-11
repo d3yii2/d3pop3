@@ -110,9 +110,11 @@ class D3Pop3ModelMails extends Widget
 
         $html = '
         <thead>
-            <th>'.\Yii::t('d3pop3', 'Time').'</th>
-            <th>'.\Yii::t('d3pop3', 'Subject').'</th>
-            <th>'.\Yii::t('d3pop3', 'To').'</th>
+            <tr>
+                <th>'.\Yii::t('d3pop3', 'Time').'</th>
+                <th>'.\Yii::t('d3pop3', 'Subject').'</th>
+                <th>'.\Yii::t('d3pop3', 'To').'</th>
+            </tr>     
         </thead>
         <tbody>
         ';
@@ -125,7 +127,7 @@ class D3Pop3ModelMails extends Widget
             </tr>';
         }
 
-        return $html . '</tbody></table>';
+        return $html . '</tbody>';
 
 
     }
