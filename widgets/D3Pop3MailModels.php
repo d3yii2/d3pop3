@@ -8,7 +8,7 @@ use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use yii\base\Widget;
 use yii\helpers\Html;
 
-class D3Pop3ModelMails extends Widget
+class D3Pop3MailModels extends Widget
 {
     public $model;
     public $title;
@@ -73,39 +73,16 @@ class D3Pop3ModelMails extends Widget
     public function createTable()
     {
          $sql = '
-            SELECT 
-              e.`email_datetime`,
-              e.`subject`,
-              GROUP_CONCAT(
-                CONCAT(
-                  aTo.`name`,
-                  \' \',
-                  aTo.`email_address`
-                )
-              ) `to` ,
-              GROUP_CONCAT(companyTo.`name` SEPARATOR \'; \') `directToCompany`
+            SELECT
+               em.model_name,
+               em.status  
             FROM
               `d3pop3_email_models` em 
-              INNER JOIN `d3pop3_emails` e 
-                ON em.`email_id` = e.id
-              LEFT OUTER JOIN `d3pop3_send_receiv` srTo
-                ON e.id = srTo.`email_id` 
-                AND srTo.`direction` = \'in\'
-              LEFT OUTER JOIN `d3c_company` companyTo
-                ON companyTo.id = srTo.`company_id`                  
-              LEFT OUTER JOIN `d3pop3_email_address` aTo 
-                ON e.id = aTo.`email_id` 
-                AND aTo.`address_type` = :to 
-            WHERE em.model_name = :modelName 
-              AND em.model_id = :id 
-            GROUP BY e.id          
-            ORDER BY e.`email_datetime`
+            WHERE em.email_id = :emailId 
          ';
 
          $params = [
-             ':to' => D3pop3EmailAddress::ADDRESS_TYPE_TO,
-             ':modelName' => get_class($this->model),
-             ':id' => $this->model->id
+             ':emailId' => $this->model->id
          ];
         $connection = \Yii::$app->getDb();
         $command = $connection->createCommand($sql, $params);
@@ -113,9 +90,8 @@ class D3Pop3ModelMails extends Widget
         $html = '
         <thead>
             <tr>
-                <th>'.\Yii::t('d3pop3', 'Time').'</th>
-                <th>'.\Yii::t('d3pop3', 'Subject').'</th>
-                <th>'.\Yii::t('d3pop3', 'To').'</th>
+                <th>'.\Yii::t('d3pop3', 'Model').'</th>
+                <th>'.\Yii::t('d3pop3', 'Status').'</th>
             </tr>     
         </thead>
         <tbody>
@@ -123,9 +99,8 @@ class D3Pop3ModelMails extends Widget
         foreach($command->queryAll() as $row){
             $html .= '
             <tr>
-                <td>'.$row['email_datetime'].'</td>
-                <td>'.$row['subject'].'</td>
-                <td>'.$row['to'].$row['directToCompany'].'</td>
+                <td>'.$row['model_name'].'</td>
+                <td>'.$row['status'].'</td>
             </tr>';
         }
 
