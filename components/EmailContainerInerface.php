@@ -3,6 +3,7 @@
 namespace d3yii2\d3pop3\components;
 
 use afinogen89\getmail\message\Message;
+use d3yii2\d3pop3\models\D3pop3Email;
 use unyii2\imap\IncomingMail;
 
 interface EmailContainerInerface {
@@ -23,4 +24,11 @@ interface EmailContainerInerface {
      * @return array list of primary key and model name
      */
     public function getModelForattach(IncomingMail $msg);
+
+    public function getImapPath();
+    public function getUserName();
+    public function getPassword();
+    public function getId();
+
+    public function setReceiver(D3pop3Email  $email);
 }

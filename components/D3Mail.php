@@ -2,12 +2,15 @@
 
 namespace d3yii2\d3pop3\components;
 
+use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
+use Html2Text\Html2Text;
 use yii\db\ActiveRecord;
+use yii2d3\d3emails\models\forms\MailForm;
 
 class D3Mail
 {
@@ -38,6 +41,22 @@ class D3Mail
 
     /** @var array */
     private $attachmentList = [];
+
+    /**
+     * @return D3pop3Email
+     */
+    public function getEmail(): D3pop3Email
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param D3pop3Email $email
+     */
+    public function setEmail(D3pop3Email $email)
+    {
+        $this->email = $email;
+    }
 
     /**
      * @param array $emailIdList
@@ -91,16 +110,22 @@ class D3Mail
 
     /**
      * @param string $email
-     * @param string $name
+     * @param string|null $name
      * @return $this
      */
-    public function addAddressTo(string $email, string $name = '')
+    public function addAddressTo(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_TO;
         $address->email_address = $email;
         $address->name = $name;
         $this->addressList[] = $address;
+        return $this;
+    }
+
+    private function clearAddressTo()
+    {
+        $this->addressList = [];
         return $this;
     }
 
@@ -218,5 +243,150 @@ class D3Mail
         }
 
         return $message->send();
+    }
+
+    /**
+     * @return array|D3pop3EmailAddress[]
+     */
+    private function getEmailAddress()
+    {
+        if(!$this->addressList){
+            $this->addressList = $this->email->getD3pop3EmailAddresses()->all();
+        }
+
+        return $this->addressList;
+    }
+
+    /**
+     * @return array|D3pop3EmailAddress[]
+     */
+    public function getToAdreses(): array
+    {
+        /** @var D3pop3EmailAddress[] $list */
+        $list = [];
+        /** @var D3pop3EmailAddress $address */
+        foreach($this->getEmailAddress() as $address){
+            if($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO){
+                $list[] = $address;
+            }
+        }
+
+        return $list;
+    }
+
+    /**
+     * @return D3pop3EmailAddress[]
+     */
+    public function getReplyAddreses()
+    {
+
+        /** @var D3pop3EmailAddress[] $list */
+        $list = [];
+        /** @var D3pop3EmailAddress $address */
+        foreach($this->getEmailAddress() as $address){
+            if($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY){
+                $list[] = $address;
+            }
+        }
+
+        return $list;
+    }
+
+
+    /**
+     * ja nav plain body, konvertee HTML body
+     * @return string
+     * @throws \Html2Text\Html2TextException
+     */
+    private function getPlainBody(): string
+    {
+        if(!$this->email->body){
+            return $this->email->body_plain;
+        }
+
+        $convertedBody = Html2Text::convert($this->email->body, true);
+        if(!$this->email->body_plain){
+            return $convertedBody;
+        }
+
+        /**
+         * apstraadaa gafdiijumu, ja plain body ir piemeeram "An HTML viewer is required to see this message"
+         */
+        if(\strlen($convertedBody) > 3*\strlen($this->email->body_plain)){
+            return $convertedBody;
+        }
+        return $this->email->body_plain;
+    }
+
+    /**
+     * @return D3Mail
+     * @throws \Exception
+     */
+    public function createReply(): self
+    {
+
+        /** @var D3pop3ConnectingSettings $settings */
+        $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
+
+        $replyD3Mail = new self();
+
+        $replyD3Mail->setEmailId(['REPLY',\Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
+            ->setSubject('RE: ' . $this->email->subject)
+            ->setBodyPlain(str_replace("\n","\n> ",$this->getPlainBody()))
+            ->setFromEmail($settings->email)
+            ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
+            ->addSendReceiveOutFromCompany(\Yii::$app->SysCmp->getActiveCompanyId())
+            //->addSendReceiveToInCompany($model->partner_id)
+            //->setEmailModel($model)
+            //->addAttachment($fileName,$filePath)
+            ;
+
+        if($replyAddreses = $this->getReplyAddreses()) {
+            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
+
+        }else{
+            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
+        }
+        $replyD3Mail->save();
+
+        return $replyD3Mail;
+
+    }
+
+    /**
+     * @param MailForm $form
+     * @return MailForm
+     */
+    public function loadToForm(MailForm $form): MailForm
+    {
+        $form->from = $this->email->from;
+        $form->from_name = $this->email->from_name;
+
+        $toAdreses = $this->getToAdreses();
+        $form->to = $toAdreses[0]->email_address;
+        $form->to_name = $toAdreses[0]->name;
+
+        $form->subject = $this->email->subject;
+        $form->body = $this->email->body_plain;
+
+        return $form;
+
+    }
+
+    /**
+     * @param MailForm $form
+     * @return bool
+     */
+    public function loadFromForm(MailForm $form): bool
+    {
+        $this->setFromEmail($form->from)
+        ->setFromName($form->from_name)
+        ->clearAddressTo()
+        ->addAddressTo($form->to,$form->to_name)
+        ->setSubject($this->email->subject)
+        ->setBodyPlain($this->email->body_plain)
+        ->save();
+        return true;
+
     }
 }

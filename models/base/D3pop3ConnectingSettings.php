@@ -16,6 +16,7 @@ use Yii;
  * @property string $model_search_field
  * @property string $search_by_email_field
  * @property string $type
+ * @property string $email
  * @property string $settings
  * @property string $notes
  *
@@ -51,7 +52,7 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sys_company_id'], 'required'],
+            [['sys_company_id','email'], 'required'],
             [['sys_company_id', 'person_id'], 'integer'],
             [['model', 'type', 'settings', 'notes'], 'string'],
             [['model_search_field', 'search_by_email_field'], 'string', 'max' => 255],
@@ -62,7 +63,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
                     self::TYPE_GMAIL,
                     self::TYPE_IMAP,
                 ]
-            ]
+            ],
+            ['email','email']
         ];
     }
 
@@ -79,6 +81,7 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
             'model_search_field' => Yii::t('d3pop3', 'Model search field'),
             'search_by_email_field' => Yii::t('d3pop3', 'Search by email field'),
             'type' => Yii::t('d3pop3', 'Type'),
+            'email' => Yii::t('d3pop3', 'Email'),
             'settings' => Yii::t('d3pop3', 'Settings'),
             'notes' => Yii::t('d3pop3', 'Notes'),
         ];

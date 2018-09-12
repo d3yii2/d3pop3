@@ -1,13 +1,8 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace d3yii2\d3pop3\components;
 
+use unyii2\imap\IncomingMailAttachment;
 use Yii;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3Email;
@@ -20,6 +15,11 @@ use yii\helpers\FileHelper;
 
 class ReadEmails {
 
+    /**
+     * @param EmailContainerInerface $cc
+     * @param $containerClass
+     * @return bool
+     */
     public static function readImap(EmailContainerInerface $cc, $containerClass) {
         
         $error = false;
@@ -42,7 +42,7 @@ class ReadEmails {
             try {
                 $mailbox = new Mailbox($imapConnection);
             } catch (\Exception $e) {
-                \Yii::error('Container class: ' . $containerClass . '; Can not connect to: ' . $imapPath . '; Error: ' . $e->getMessage());
+                \Yii::error('Container class: ' . $containerClass . '; Can not connect to: ' . $imapConnection->imapPath . '; Error: ' . $e->getMessage());
                 return false;
             }
 
@@ -83,6 +83,7 @@ class ReadEmails {
                 $email->from = $msg->fromAddress;
                 $email->from_name = $msg->fromName;
                 $email->email_container_class = $containerClass;
+                $email->email_container_id =  $cc->getId();
 
                 if (!$email->save()) {
                     $errorList =  \yii\helpers\Json::encode($email->getErrors());
@@ -131,7 +132,7 @@ class ReadEmails {
                 }
                 $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i';
 
-                /** @var Attachment $t */
+                /** @var IncomingMailAttachment $t */
                 foreach ($msg->getAttachments() as $t) {
                     echo $i . ' A:' . $t->name . PHP_EOL;
 

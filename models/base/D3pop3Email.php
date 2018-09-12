@@ -19,6 +19,7 @@ use Yii;
  * @property string $from
  * @property string $from_name
  * @property string $email_container_class
+ * @property string $email_container_id
  *
  * @property \d3yii2\d3pop3\models\D3pop3EmailAddress[] $d3pop3EmailAddresses
  * @property \d3yii2\d3pop3\models\D3pop3EmailError[] $d3pop3EmailErrors
@@ -50,7 +51,8 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
             [['receive_datetime'], 'required'],
             [['subject', 'body', 'body_plain'], 'string'],
             [['email_id'], 'string', 'max' => 1000],
-            [['from', 'from_name', 'email_container_class'], 'string', 'max' => 256]
+            [['from', 'from_name', 'email_container_class'], 'string', 'max' => 256],
+            ['email_container_id','integer']
         ];
     }
 
@@ -70,6 +72,7 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
             'from' => Yii::t('d3pop3', 'From'),
             'from_name' => Yii::t('d3pop3', 'From Name'),
             'email_container_class' => Yii::t('d3pop3', 'Email Container'),
+            'email_container_id' => Yii::t('d3pop3', 'Email Container ID'),
         ];
     }
 

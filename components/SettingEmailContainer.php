@@ -2,8 +2,6 @@
 
 namespace d3yii2\d3pop3\components;
 
-use d3yii2\d3pop3\components\EmailContainerInerface;
-use app\models\Test;
 use afinogen89\getmail\message\Message;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
@@ -19,6 +17,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     public $modelSearchField;
     public $serachByEmailField;
     private $loadedData = false;
+
     private $record = false;
 
     public function __construct() {
@@ -41,6 +40,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         /** @var D3pop3ConnectingSettings $dataRow */
         $dataRow = array_shift($this->data);
         $settings = Json::decode($dataRow->settings);
+        $this->currentData['id'] = $settings['id'];
         $this->currentData['host'] = $settings['host'];
         $this->currentData['user'] = $settings['user'];
         $this->currentData['password'] = $settings['password'];
@@ -83,6 +83,10 @@ class SettingEmailContainer implements EmailContainerInerface {
 
     public function getPassword(){
         return $this->currentData['password'];
+    }
+
+    public function getId(){
+        return $this->currentData['id'];
     }
 
     /**
