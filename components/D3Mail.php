@@ -328,11 +328,16 @@ class D3Mail
         /** @var D3pop3ConnectingSettings $settings */
         $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
 
+        if(!$settings->email){
+            throw new \Exception(\Yii::t('d3pop3','Please set email in My Company Email Settings'));
+        }
+
+
         $replyD3Mail = new self();
 
         $replyD3Mail->setEmailId(['REPLY',\Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
             ->setSubject('RE: ' . $this->email->subject)
-            ->setBodyPlain(str_replace("\n","\n> ",$this->getPlainBody()))
+            ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
             ->setFromEmail($settings->email)
             ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
             ->addSendReceiveOutFromCompany(\Yii::$app->SysCmp->getActiveCompanyId())
@@ -383,9 +388,8 @@ class D3Mail
         ->setFromName($form->from_name)
         ->clearAddressTo()
         ->addAddressTo($form->to,$form->to_name)
-        ->setSubject($this->email->subject)
-        ->setBodyPlain($this->email->body_plain)
-        ->save();
+        ->setSubject($form->subject)
+        ->setBodyPlain($form->body_plain);
         return true;
 
     }
