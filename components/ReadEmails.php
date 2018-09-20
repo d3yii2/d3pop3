@@ -12,6 +12,7 @@ use unyii2\imap\ImapConnection;
 use d3yii2\d3pop3\models\D3pop3EmailError;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use yii\helpers\FileHelper;
+use yii\helpers\VarDumper;
 
 class ReadEmails {
 
@@ -154,6 +155,7 @@ class ReadEmails {
                 }
             } catch (\Exception $e) {
                 \Yii::error('Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage());
+                \Yii::error( VarDumper::export($e->getTrace());
                 continue;
             }
         }
