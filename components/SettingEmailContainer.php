@@ -40,7 +40,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         /** @var D3pop3ConnectingSettings $dataRow */
         $dataRow = array_shift($this->data);
         $settings = Json::decode($dataRow->settings);
-        $this->currentData['id'] = $settings['id'];
+        $this->currentData['id'] = $dataRow->id;
         $this->currentData['host'] = $settings['host'];
         $this->currentData['user'] = $settings['user'];
         $this->currentData['password'] = $settings['password'];
