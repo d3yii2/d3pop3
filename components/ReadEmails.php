@@ -2,6 +2,7 @@
 
 namespace d3yii2\d3pop3\components;
 
+use d3yii2\d3pop3\models\D3pop3Actions;
 use unyii2\imap\IncomingMailAttachment;
 use Yii;
 use d3yii2\d3files\models\D3files;
@@ -42,6 +43,9 @@ class ReadEmails {
              * connect to IMAP
              */
             try {
+
+                Action::read($cc->getId());
+
                 $mailbox = new Mailbox($imapConnection);
                 $mailbox->readMailParts = false;
 
@@ -156,9 +160,11 @@ class ReadEmails {
 
 
             } catch (\Exception $e) {
-                echo 'Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage() . PHP_EOL;
-                \Yii::error('Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage());
+                $message = 'Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage();
+                echo $message . PHP_EOL;
+                \Yii::error($message);
                 \Yii::error( VarDumper::export($e->getTrace()));
+                Action::error($cc->getId(),$message);
                 continue;
             }
 
