@@ -155,7 +155,7 @@ class ReadEmails {
                 }
             } catch (\Exception $e) {
                 \Yii::error('Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage());
-                \Yii::error( VarDumper::export($e->getTrace());
+                \Yii::error( VarDumper::export($e->getTrace()));
                 continue;
             }
         }
