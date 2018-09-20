@@ -153,11 +153,15 @@ class ReadEmails {
                     }
                     echo PHP_EOL;
                 }
+
+
             } catch (\Exception $e) {
+                echo 'Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage() . PHP_EOL;
                 \Yii::error('Container class: ' . $containerClass . '; Can not connect ; Error: ' . $e->getMessage());
                 \Yii::error( VarDumper::export($e->getTrace()));
                 continue;
             }
+
         }
         
         /**
