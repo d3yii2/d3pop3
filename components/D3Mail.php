@@ -8,9 +8,12 @@ use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
+use d3yii2\d3pop3\models\D3pPerson;
 use Html2Text\Html2Text;
 use yii\db\ActiveRecord;
+use yii\db\Exception;
 use yii2d3\d3emails\models\forms\MailForm;
+use yii2d3\d3persons\models\User;
 
 class D3Mail
 {
@@ -29,6 +32,9 @@ class D3Mail
     private $from_name;
 
     private $from_email;
+
+    /** @var int */
+    private $from_user_id;
 
     /** @var D3pop3EmailAddress[] */
     private $addressList = [];
@@ -109,6 +115,26 @@ class D3Mail
     }
 
     /**
+     * @param int $userId
+     * @return D3Mail
+     * @throws Exception
+     */
+    public function setFromUserId(int $userId): self
+    {
+        $this->from_user_id = $userId;
+        if(!$user = User::findOne($userId)){
+            throw new Exception('No found user. user_id=' . $userId);
+        }
+        $this->from_email = $user->email;
+
+        /** @var D3pPerson $person */
+        if($person = $user->getD3pPeople()->one()){
+            $this->from_name = $person->getFullName();
+        }
+        return $this;
+    }
+
+    /**
      * @param string $email
      * @param string|null $name
      * @return $this
@@ -183,6 +209,7 @@ class D3Mail
         $this->email->body_plain = $this->bodyPlain;
         $this->email->from_name = $this->from_name;
         $this->email->from = $this->from_email;
+        $this->email->from_user_id = $this->from_user_id;
         if (!$this->email->save()) {
             throw new \Exception('D3pop3Email save error: ' . json_encode($this->email->getErrors()));
         }

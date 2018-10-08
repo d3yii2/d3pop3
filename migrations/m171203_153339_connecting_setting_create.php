@@ -1,5 +1,5 @@
 <?php
-namespace d3yii2\d3pop3\migrations;
+//namespace d3yii2\d3pop3\migrations;
 use yii\db\Migration;
 
 class m171203_153339_connecting_setting_create extends Migration

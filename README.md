@@ -7,11 +7,6 @@
 
 
 ## Installation
-```php
-    'yii.migrations' => [
-        '@vendor/d3yii2/d3files/migrations',
-    ],
-```
 
 ```bash
 php composer.phar require d3yii2/d3pop3 dev-master
@@ -38,7 +33,7 @@ php composer.phar require d3yii2/d3pop3 dev-master
     ],
 ```
 
-* add to config/console.php under modules d3yii2/d3files with identical setings as in config.web.ph
+* add to config/console.php under modules d3yii2/d3files with identical setings as in config.web.php
 
 * migration configuration. Add to console parameters migration path
 ```php
@@ -52,7 +47,7 @@ php composer.phar require d3yii2/d3pop3 dev-master
 yii migrate
 ```
 
-* Add yii command to console config
+* For reading emails add yii command to console config 
     'controllerMap' => [
         'd3pop3' => 'd3yii2\d3pop3\command\D3Pop3Controller',
     ]

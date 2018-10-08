@@ -18,6 +18,7 @@ use Yii;
  * @property string $body_plain
  * @property string $from
  * @property string $from_name
+ * @property integer $from_user_id
  * @property string $email_container_class
  * @property string $email_container_id
  *
@@ -52,7 +53,7 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
             [['subject', 'body', 'body_plain'], 'string'],
             [['email_id'], 'string', 'max' => 1000],
             [['from', 'from_name', 'email_container_class'], 'string', 'max' => 256],
-            ['email_container_id','integer']
+            [['from_user_id', 'email_container_id'], 'integer'],
         ];
     }
 
@@ -71,6 +72,7 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
             'body_plain' => Yii::t('d3pop3', 'Body Plain'),
             'from' => Yii::t('d3pop3', 'From'),
             'from_name' => Yii::t('d3pop3', 'From Name'),
+            'from_user_id' => Yii::t('d3pop3', 'From User'),
             'email_container_class' => Yii::t('d3pop3', 'Email Container'),
             'email_container_id' => Yii::t('d3pop3', 'Email Container ID'),
         ];
@@ -89,6 +91,7 @@ abstract class D3pop3Email extends \yii\db\ActiveRecord
             'body_plain' => Yii::t('d3pop3', 'Body Plain'),
             'from' => Yii::t('d3pop3', 'From'),
             'from_name' => Yii::t('d3pop3', 'From Name'),
+            'from_user_id' => Yii::t('d3pop3', 'From User'),
             'email_container_class' => Yii::t('d3pop3', 'Email Container'),
         ]);
     }

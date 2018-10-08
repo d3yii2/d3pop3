@@ -1,5 +1,5 @@
 <?php
-namespace d3yii2\d3pop3\migrations;
+//namespace d3yii2\d3pop3\migrations;
 use yii\db\Migration;
 
 class m171222_191725_send_receive_add_status extends Migration
