@@ -28,15 +28,7 @@ class m160815_170102_upgrade extends Migration
               PRIMARY KEY (`id`),
               FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails`(`id`)
             ) ENGINE=INNODB CHARSET=utf8 COLLATE=utf8_bin;
-            
-            CREATE TABLE `d3pop3_email_error`(  
-              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-              `email_id` INT UNSIGNED NOT NULL COMMENT 'Email',
-              `message` TEXT NOT NULL COMMENT 'Message',
-              PRIMARY KEY (`id`),
-              FOREIGN KEY (`email_id`) REFERENCES `blankon20160608`.`d3pop3_emails`(`id`)
-            ) ENGINE=INNODB CHARSET=utf8;
-            
+
             CREATE TABLE `d3pop3_email_error`(
                 `id` INT(10) UNSIGNED NOT NULL  AUTO_INCREMENT , 
                 `email_id` INT(10) UNSIGNED NOT NULL  COMMENT 'Email' , 
@@ -58,7 +50,6 @@ class m160815_170102_upgrade extends Migration
 	public function down()
 	{
 		$this->dropTable('d3pop3_email_address');
-        $this->dropTable('d3pop3_email_error');
 	}
 
 	/**

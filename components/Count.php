@@ -15,7 +15,8 @@ class Count
             ->innerJoin('d3pop3_send_receiv AS sr','d3pop3_emails.id = sr.email_id')
             ->where([
                 'sr.company_id' => \Yii::$app->SysCmp->getActiveCompanyId(),
-                'sr.status' => D3pop3SendReceiv::STATUS_NEW
+                'sr.status' => D3pop3SendReceiv::STATUS_NEW,
+                'sr.direction' => D3pop3SendReceiv::DIRECTION_IN
             ])
             ->asArray()
             ->scalar();
