@@ -8,6 +8,11 @@ use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use yii\base\Widget;
 use yii\helpers\Html;
 
+/**
+ * Class D3Pop3ModelMails
+ * @package d3yii2\d3pop3\widgets
+ * @deprecated use \yii2d3\d3emails\widgets\D3Pop3ModelMails
+ */
 class D3Pop3ModelMails extends Widget
 {
     public $model;

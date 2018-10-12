@@ -3,11 +3,15 @@
 
 namespace d3yii2\d3pop3\widgets;
 
-
-use d3yii2\d3pop3\models\D3pop3EmailAddress;
+use eaBlankonThema\widget\ThExternalLink;
 use yii\base\Widget;
 use yii\helpers\Html;
 
+/**
+ * Class D3Pop3MailModels
+ * @package d3yii2\d3pop3\widgets
+ * @deprecated use \yii2d3\d3emails\widgets\D3Pop3MailModels
+ */
 class D3Pop3MailModels extends Widget
 {
     public $model;
@@ -18,6 +22,16 @@ class D3Pop3MailModels extends Widget
     public $tableOptions = [
         'class' => 'table table-striped table-success table-bordered'
     ];
+    private $attachedModels = [];
+
+    public function init()
+    {
+        parent::init();
+        foreach(\Yii::$app->getModule('d3emails')->attachedModels as $am){
+            $this->attachedModels[$am['model']] = $am;
+        }
+
+    }
 
     public function run(): string
     {
@@ -74,6 +88,7 @@ class D3Pop3MailModels extends Widget
     {
          $sql = '
             SELECT
+               em.id,
                em.model_name,
                em.status  
             FROM
@@ -97,6 +112,19 @@ class D3Pop3MailModels extends Widget
         <tbody>
         ';
         foreach($command->queryAll() as $row){
+
+            if(isset($this->attachedModels[$row['model_name']])){
+                $am = $this->attachedModels[$row['model_name']];
+                $html .= '
+                    <tr>
+                        <td>'. ThExternalLink::widget([
+                            'text' => \Yii::t($am['labelTranslationCategory'], $am['label']),
+                            'url' => $this->createUrl($am['urlTemplate'],$row['id'])
+                    ]).'</td>
+                        <td>'.$row['status'].'</td>
+                    </tr>';
+                continue;
+            }
             $html .= '
             <tr>
                 <td>'.$row['model_name'].'</td>
@@ -105,7 +133,15 @@ class D3Pop3MailModels extends Widget
         }
 
         return $html . '</tbody>';
+    }
 
-
+    private function createUrl($urlTemplate, $id){
+        if(!\is_array($urlTemplate)){
+            return str_replace('{id}',$id,$urlTemplate);
+        }
+        foreach($urlTemplate as $k => $v){
+            $urlTemplate[$k] = $this->createUrl($v,$id);
+        }
+        return $urlTemplate;
     }
 }
