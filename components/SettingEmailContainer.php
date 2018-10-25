@@ -59,11 +59,57 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->record = $dataRow;
         return true;
     }
+    
+    /**
+     * @inheritdoc
+     */
+    public function fetchEmailSmtpData($email) {
+
+        if(!$this->loadedData){
+            $this->data = D3pop3ConnectingSettings::findOne(
+                ['email' => $email, 'type' => \d3yii2\d3pop3\models\base\D3pop3ConnectingSettings::TYPE_SMTP]
+            );
+            $this->loadedData = true;
+        }
+
+        if (!$this->data) {
+            return false;
+        }
+        /** @var D3pop3ConnectingSettings $dataRow */
+        $dataRow = $this->data;
+        $settings = Json::decode($dataRow->settings);
+        $this->currentData['id'] = $dataRow->id;
+        $this->currentData['host'] = $settings['host'];
+        $this->currentData['user'] = $settings['user'];
+        $this->currentData['password'] = $settings['password'];
+        $this->currentData['ssl'] = $settings['ssl'];
+        $this->currentData['port'] = (int)($settings['port']??993);
+        
+ 
+        $this->modelName = $dataRow->model;
+        $this->modelSearchField = $dataRow->model_search_field;
+        $this->serachByEmailField = $dataRow->search_by_email_field;
+        $this->record = $dataRow;
+        return true;
+    }
 
     /**
      * @inheritdoc
      */
     public function getPop3ConnectionDetails() {
+        return [
+                'host' => $this->currentData['host'],
+                'user' => $this->currentData['user'],
+                'password' => $this->currentData['password'],
+                'ssl' => $this->currentData['ssl'],
+                'port' => $this->currentData['port'],
+        ];
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function getEmailSmtpConnectionDetails() {
         return [
                 'host' => $this->currentData['host'],
                 'user' => $this->currentData['user'],
