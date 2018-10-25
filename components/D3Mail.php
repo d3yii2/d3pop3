@@ -254,35 +254,35 @@ class D3Mail
          * Set the custom SMTP connection if exists for this mailbox
          */
         $settingEmailContainer = new SettingEmailContainer();
-        $settingEmailContainer->fetchEmailSmtpData($this->from_email);
-        $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
-        
-        if ($smtpConfig) {
-                
-            $tranportConfig = [
-                'class' => 'Swift_SmtpTransport',
-                'host' => $smtpConfig['host'],
-                'port' => $smtpConfig['port'],
-            ];
+        if($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
+            $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
 
-            if(!empty($smtpConfig['user'])) {
-                $tranportConfig['username'] = $smtpConfig['user'];
-            }
+            if ($smtpConfig) {
 
-            if(!empty($smtpConfig['password'])) {
-                $tranportConfig['password'] = $smtpConfig['password'];
-            }
-            
-            if(!empty($smtpConfig['ssl'])  && \d3yii2\d3pop3\models\TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
-                $tranportConfig['encryption'] = $smtpConfig['ssl'];
+                $tranportConfig = [
+                    'class' => 'Swift_SmtpTransport',
+                    'host' => $smtpConfig['host'],
+                    'port' => $smtpConfig['port'],
+                ];
 
-                //@FIXME - should be self signed certificates supported?
-                //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                if (!empty($smtpConfig['user'])) {
+                    $tranportConfig['username'] = $smtpConfig['user'];
+                }
+
+                if (!empty($smtpConfig['password'])) {
+                    $tranportConfig['password'] = $smtpConfig['password'];
+                }
+
+                if (!empty($smtpConfig['ssl']) && \d3yii2\d3pop3\models\TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
+                    $tranportConfig['encryption'] = $smtpConfig['ssl'];
+
+                    //@FIXME - should be self signed certificates supported?
+                    //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                }
+
+                \Yii::$app->mailer->setTransport($tranportConfig);
             }
-            
-            \Yii::$app->mailer->setTransport($tranportConfig);
         }
-        
         $message = \Yii::$app->mailer->compose()
             ->setFrom($this->email->from)
             ->setSubject($this->email->subject)
