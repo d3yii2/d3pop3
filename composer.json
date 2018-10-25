@@ -1,0 +1,23 @@
+{
+    "name": "d3yii2/d3pop3",
+    "description": "Read emails an save in table",
+    "keywords": ["yii2","email","pop3"],
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Uldis Nelsons",
+            "email": "uldis@weberp.lv"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "d3yii2/d3files": "0.9.*",
+        "unyii2/yii2-imap": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "d3yii2\\d3pop3\\": ""
+        }
+    }
+}
