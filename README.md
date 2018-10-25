@@ -60,3 +60,5 @@ In configuration under 'ConfigEmailContainerData' set:
 * POP3 connection data, 
 * model with namespace for attaching emails
 * model field name, where search email to field value for ataching email
+
+Uldis
