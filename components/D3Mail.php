@@ -29,6 +29,9 @@ class D3Mail
     /** @var string */
     private $bodyPlain;
 
+    /** @var string */
+    private $bodyHtml;
+
     private $from_name;
 
     private $from_email;
@@ -88,9 +91,19 @@ class D3Mail
      * @param string $bodyPlain
      * @return $this
      */
-    public function setBodyPlain(string $bodyPlain)
+    public function setBodyPlain(string $bodyPlain): self
     {
         $this->bodyPlain = $bodyPlain;
+        return $this;
+    }
+
+    /**
+     * @param string $bodyHtml
+     * @return D3Mail
+     */
+    public function setBodyHtml(string  $bodyHtml): self
+    {
+        $this->bodyHtml = $bodyHtml;
         return $this;
     }
 
@@ -206,6 +219,7 @@ class D3Mail
         $this->email->email_datetime = date('Y-m-d H:i:s');
         $this->email->receive_datetime = date('Y-m-d H:i:s');
         $this->email->subject = $this->subject;
+        $this->email->body = $this->bodyHtml;
         $this->email->body_plain = $this->bodyPlain;
         $this->email->from_name = $this->from_name;
         $this->email->from = $this->from_email;
@@ -251,9 +265,13 @@ class D3Mail
     {
         $message = \Yii::$app->mailer->compose()
             ->setFrom($this->email->from)
-            ->setSubject($this->email->subject)
-            ->setTextBody($this->email->body_plain)//->setHtmlBody('<b>HTML content</b>')
-        ;
+            ->setSubject($this->email->subject);
+        if($this->email->body_plain) {
+            $message->setTextBody($this->email->body_plain);
+        }
+        if($this->email->body) {
+            $message->setHtmlBody($this->email->body);
+        }
         /** @var D3pop3EmailAddress $address */
         foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
             if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
