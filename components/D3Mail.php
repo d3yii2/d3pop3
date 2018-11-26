@@ -3,6 +3,7 @@
 namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
+use d3yii2\d3pop3\models\D3pop3ConnectingSmtpSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
@@ -263,6 +264,39 @@ class D3Mail
 
     public function send(): bool
     {
+        /**
+         * Set the custom SMTP connection if exists for this mailbox
+         */
+        $settingEmailContainer = new SettingEmailContainer();
+        if($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
+            $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
+
+            if ($smtpConfig) {
+
+                $tranportConfig = [
+                    'class' => 'Swift_SmtpTransport',
+                    'host' => $smtpConfig['host'],
+                    'port' => $smtpConfig['port'],
+                ];
+
+                if (!empty($smtpConfig['user'])) {
+                    $tranportConfig['username'] = $smtpConfig['user'];
+                }
+
+                if (!empty($smtpConfig['password'])) {
+                    $tranportConfig['password'] = $smtpConfig['password'];
+                }
+
+                if (!empty($smtpConfig['ssl']) && \d3yii2\d3pop3\models\TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
+                    $tranportConfig['encryption'] = $smtpConfig['ssl'];
+
+                    //@FIXME - should be self signed certificates supported?
+                    //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                }
+
+                \Yii::$app->mailer->setTransport($tranportConfig);
+            }
+        }
         $message = \Yii::$app->mailer->compose()
             ->setFrom($this->email->from)
             ->setSubject($this->email->subject);
