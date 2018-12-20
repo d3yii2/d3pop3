@@ -16,6 +16,14 @@ class D3pop3ConnectingSmtpSettings extends D3pop3ConnectingSettings
     {
         return [
             [['sys_company_id','email'], 'required'],
+            [
+                'email', 'unique',
+                'targetAttribute' => ['email', 'type'],
+                'comboNotUnique' => \Yii::t(
+                    'd3pop3',
+                    'Email: {email} has already been taken for type: {type}',
+                    ['email' => $this->email, 'type' => $this->type]) //@FIXME - translate nerāda epasta adresi, bet tikai tipu?
+            ],
             [['sys_company_id', 'person_id'], 'integer'],
             [['model', 'type', 'settings', 'notes'], 'string'],
             [['model_search_field', 'search_by_email_field'], 'string', 'max' => 255],
@@ -28,8 +36,6 @@ class D3pop3ConnectingSmtpSettings extends D3pop3ConnectingSettings
                 self::TYPE_SMTP,
             ]
             ],
-            // one connection record per mailbox
-            ['email', 'unique']
         ];
     }
 }
