@@ -19,6 +19,7 @@ use Yii;
  * @property string $email
  * @property string $settings
  * @property string $notes
+ * @property integer $deleted
  *
  * @property \d3yii2\d3pop3\models\D3cCompany $sysCompany
  * @property \d3yii2\d3pop3\models\D3pPerson $person
@@ -54,17 +55,9 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
     {
         return [
             [['sys_company_id','email'], 'required'],
-            [
-                'email', 'unique',
-                'targetAttribute' => ['email', 'type'],
-                'comboNotUnique' => Yii::t(
-                    'd3pop3',
-                    'Email: {email} has already been taken for type: {type}',
-                    ['email' => $this->email, 'type' => $this->type]) //@FIXME - translate nerāda epasta adresi, bet tikai tipu?
-            ], 
-            [['sys_company_id', 'person_id'], 'integer'],
+            [['sys_company_id', 'person_id', 'deleted'], 'integer'],
             [['model', 'type', 'settings', 'notes'], 'string'],
-            [['model_search_field', 'search_by_email_field'], 'string', 'max' => 255],
+            [['model_search_field', 'search_by_email_field', 'email'], 'string', 'max' => 255],
             [['sys_company_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3cCompany::className(), 'targetAttribute' => ['sys_company_id' => 'id']],
             [['person_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pPerson::className(), 'targetAttribute' => ['person_id' => 'id']],
             ['type', 'in', 'range' => [
@@ -74,7 +67,6 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
                     self::TYPE_SMTP,
                 ]
             ],
-            ['email','email']
         ];
     }
 
@@ -94,6 +86,7 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
             'email' => Yii::t('d3pop3', 'Email'),
             'settings' => Yii::t('d3pop3', 'Settings'),
             'notes' => Yii::t('d3pop3', 'Notes'),
+            'deleted' => Yii::t('d3pop3', 'Deleted'),
         ];
     }
 
@@ -108,7 +101,9 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
             'model_search_field' => Yii::t('d3pop3', 'Model search field'),
             'search_by_email_field' => Yii::t('d3pop3', 'Search by email field'),
             'type' => Yii::t('d3pop3', 'Type'),
+            'email' => Yii::t('d3pop3', 'Email'),
             'settings' => Yii::t('d3pop3', 'Settings'),
+            'deleted' => Yii::t('d3pop3', 'Deleted'),
         ]);
     }
 
@@ -161,8 +156,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
         return [
             self::TYPE_POP3 => Yii::t('d3pop3', self::TYPE_POP3),
             self::TYPE_GMAIL => Yii::t('d3pop3', self::TYPE_GMAIL),
-            self::TYPE_IMAP => Yii::t('d3php3', self::TYPE_IMAP),
-            self::TYPE_SMTP => Yii::t('d3php3', self::TYPE_SMTP),
+            self::TYPE_IMAP => Yii::t('d3pop3', self::TYPE_IMAP),
+            self::TYPE_SMTP => Yii::t('d3pop3', self::TYPE_SMTP),
         ];
     }
 

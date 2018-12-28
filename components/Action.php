@@ -44,4 +44,18 @@ class Action
         $actions->save();
     }
 
+    public static function clearOldRecords(int $hours):int
+    {
+        return \Yii::$app
+            ->getDb()
+            ->createCommand('
+                DELETE FROM `d3pop3_actions` 
+                WHERE `time` < DATE_ADD(NOW(), INTERVAL -:hours HOUR)
+            ', [
+                ':hours' => $hours
+            ])
+            ->execute();
+
+
+    }
 }

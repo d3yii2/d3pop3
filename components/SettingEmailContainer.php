@@ -30,7 +30,9 @@ class SettingEmailContainer implements EmailContainerInerface {
     public function featchData() {
 
         if(!$this->loadedData){
-            $this->data = D3pop3ConnectingSettings::find()->all();
+            $this->data = D3pop3ConnectingSettings::find()
+                ->where(['deleted' => 0])
+                ->all();
             $this->loadedData = true;
         }
 
@@ -45,6 +47,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['user'] = $settings['user'];
         $this->currentData['password'] = $settings['password'];
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
+        $this->currentData['novalidateCert'] = (int)($settings['novalidateCert']??0);
         $this->currentData['port'] = (int)($settings['port']??993);
         
         if(isset($settings['directory'])) {
@@ -119,8 +122,19 @@ class SettingEmailContainer implements EmailContainerInerface {
         ];
     }
     
-    public function getImapPath(){
-        return '{' . $this->currentData['host'] . ':'.$this->currentData['port'].'/imap/ssl}'.$this->currentData['directory'];
+    public function getImapPath(): string
+    {
+        $ssl = $this->currentData['ssl']?'/ssl':'';
+        $novalidateCert = $this->currentData['novalidateCert']?'/novalidate-cert':'';
+        return '{'
+            . $this->currentData['host']
+            . ':'
+            . $this->currentData['port']
+            . '/imap'
+            . $ssl
+            . $novalidateCert
+            . '}'
+            . $this->currentData['directory'];
     }
 
     public function getUserName(){

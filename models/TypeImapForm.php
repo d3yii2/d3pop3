@@ -25,6 +25,9 @@ class TypeImapForm extends Model
     /** @var string */
     public $directory;
 
+    /** @var bool */
+    public $novalidateCert = false;
+
     public function init()
     {
         parent::init();

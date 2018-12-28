@@ -2,16 +2,23 @@
 
 namespace d3yii2\d3pop3\command;
 
+use d3yii2\d3pop3\components\Action;
 use yii\console\Controller;
 use d3yii2\d3pop3\components\ReadEmails;
+use yii\console\ExitCode;
 
 
 class D3Pop3Controller extends Controller {
 
     /**
      * Read from po3 emails and save to table d3pop3_emails
+     *
+     * @param bool $container
+     * @return int
      */
     public function actionRead($container = false) {
+        $deletedRows = Action::clearOldRecords(2);
+        $this->stdOutLine('Deleted ' . $deletedRows . ' from table d3pop3_actions oldest as 2 hours');
         $error = false;
         if (!$container) {
             $eContainers = \Yii::$app->getModule('D3Pop3')->EmailContainers;
@@ -19,9 +26,9 @@ class D3Pop3Controller extends Controller {
             $eContainers = [$container];
         }
         foreach ($eContainers as $containerClass) {
-            echo 'Container class:' . $containerClass.PHP_EOL;            
+            $this->stdOutLine('Container class:' . $containerClass);
             if (!class_exists($containerClass)) {
-                echo 'Can not found email container class:' . $containerClass.PHP_EOL;
+                $this->stdOutLine('Can not found email container class:' . $containerClass);
                 \Yii::error('Can not found email container class:' . $containerClass);
                 $error = true;
                 continue;
@@ -34,18 +41,14 @@ class D3Pop3Controller extends Controller {
 
 
         if ($error) {
-            return self::EXIT_CODE_ERROR;
+            return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        return self::EXIT_CODE_NORMAL;
-    }
-    
-    public function actionTest() {
-        $mailbox = new Mailbox('{imap.gmail.com:993/imap/ssl}INBOX', 'd3yii2d3pop3@gmail.com', '2uvsKCrDU7MkXQKPxkXs');
-
-        // Read all messaged into an array:
-            $mailsIds = $mailbox->searchMailbox('ALL');
-            var_dump($mailbox);
+        return ExitCode::OK;
     }
 
+    private function stdOutLine($text)
+    {
+        $this->stdout($text . PHP_EOL);
+    }
 }
