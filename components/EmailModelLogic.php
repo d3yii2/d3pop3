@@ -17,14 +17,13 @@ class EmailModelLogic
      * @param string $status
      * @throws \ReflectionException
      */
-    public static function attachModel($model, int $emailId, string $status = D3pop3EmailModel::STATUS_NEW)
+    public static function attachModel($model, int $emailId, string $status = D3pop3EmailModel::STATUS_NEW): void
     {
-        $modelName = (new \ReflectionClass($model))->getShortName();
-        $model_id = $model->id;
+        $modelClass = (new \ReflectionClass($model))->getName();
 
         if (D3pop3EmailModel::findOne([
             'email_id' => $emailId,
-            'model_name' => $modelName,
+            'model_name' => $modelClass,
             'model_id' => $model->id,
         ])) {
             return;
@@ -32,7 +31,7 @@ class EmailModelLogic
 
         $emailModel = new D3pop3EmailModel();
         $emailModel->email_id = $emailId;
-        $emailModel->model_name = $modelName;
+        $emailModel->model_name = $modelClass;
         $emailModel->model_id = $model->id;
         $emailModel->status = $status;
         if (!$emailModel->save()) {

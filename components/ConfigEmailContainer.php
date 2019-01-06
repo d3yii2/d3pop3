@@ -93,12 +93,12 @@ class ConfigEmailContainer implements EmailContainerInerface {
 
         $ids = [];
         
-        $reflection       = new \ReflectionClass($this->modelName);
-        $shortModelName = $reflection->getShortName();
+//        $reflection       = new \ReflectionClass($this->modelName);
+//        $shortModelName = $reflection->getShortName();
         foreach ($modelData as $td) {
             $ids[] = [
                 'id' => $td['id'],
-                'model_name' => $shortModelName,
+                'model_name' => $this->modelName,
                     ];
         }
         return $ids;

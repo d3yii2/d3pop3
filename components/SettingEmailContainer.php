@@ -154,13 +154,13 @@ class SettingEmailContainer implements EmailContainerInerface {
      */
     public function getModelForattach(IncomingMail $msg) {
 
-        $reflection       = new \ReflectionClass($this->modelName);
-        $shortModelName = $reflection->getShortName();
+//        $reflection       = new \ReflectionClass($this->modelName);
+//        $shortModelName = $reflection->getShortName();
 
         return [
             [
                 'id' => $this->record->sys_company_id,
-                'model_name' => $shortModelName,
+                'model_name' => $this->modelName,
             ]
         ];
     }
