@@ -75,9 +75,9 @@ class TypeSmtpForm extends Model
     public static function optsType()
     {
         return [
-            self::SSL_ENCRYPTION_NONE => Yii::t('d3emails_ssl', 'None'),
-            self::SSL_ENCRYPTION_SSL => Yii::t('d3emails_ssl', 'SSL'),
-            self::SSL_ENCRYPTION_TLS => Yii::t('d3emails_ssl', 'TLS'),
+            self::SSL_ENCRYPTION_NONE => Yii::t('d3pop3', 'None'),
+            self::SSL_ENCRYPTION_SSL => Yii::t('d3pop3', 'SSL'),
+            self::SSL_ENCRYPTION_TLS => Yii::t('d3pop3', 'TLS'),
         ];
     }
 }
