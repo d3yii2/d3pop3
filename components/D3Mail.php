@@ -2,8 +2,9 @@
 
 namespace d3yii2\d3pop3\components;
 
+
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
-use d3yii2\d3pop3\models\D3pop3ConnectingSmtpSettings;
+
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
@@ -169,8 +170,11 @@ class D3Mail
         return $this;
     }
 
-    public function addSendReceiveOutFromCompany(int $companyId)
+    public function addSendReceiveOutFromCompany(int $companyId = 0)
     {
+        if(!$companyId){
+            $companyId = \Yii::$app->SysCmp->getActiveCompanyId();
+        }
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
         $sendReceiv->company_id = $companyId;
@@ -216,7 +220,9 @@ class D3Mail
 
     public function save()
     {
-        $this->email = new D3pop3Email();
+        if(!$this->email) {
+            $this->email = new D3pop3Email();
+        }
         $this->email->email_datetime = date('Y-m-d H:i:s');
         $this->email->receive_datetime = date('Y-m-d H:i:s');
         $this->email->subject = $this->subject;
@@ -255,6 +261,14 @@ class D3Mail
         }
 
 
+    }
+
+    /**
+     * @return int
+     */
+    public function getEmailId(): int
+    {
+        return $this->email->id;
     }
 
     public function getAttachments()
@@ -317,7 +331,7 @@ class D3Mail
             }
         }
 
-        foreach (D3files::getRecordFilesList(D3pop3Email::className(), $this->email->id) as $file) {
+        foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
             $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
         }
 
@@ -419,7 +433,7 @@ class D3Mail
             ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
             ->setFromEmail($settings->email)
             ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
-            ->addSendReceiveOutFromCompany(\Yii::$app->SysCmp->getActiveCompanyId())
+            ->addSendReceiveOutFromCompany()
             //->addSendReceiveToInCompany($model->partner_id)
             //->setEmailModel($model)
             //->addAttachment($fileName,$filePath)
@@ -468,7 +482,7 @@ class D3Mail
         ->clearAddressTo()
         ->addAddressTo($form->to,$form->to_name)
         ->setSubject($form->subject)
-        ->setBodyPlain($form->body_plain);
+        ->setBodyPlain($form->body);
         return true;
 
     }

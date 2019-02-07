@@ -51,4 +51,12 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
         return $this->save();
     }
 
+    public static function find()
+    {
+        return parent::find()->where([
+            'sys_company_id' => \Yii::$app->SysCmp->getActiveCompanyId(),
+            'deleted' => 0
+        ]);
+    }
+
 }

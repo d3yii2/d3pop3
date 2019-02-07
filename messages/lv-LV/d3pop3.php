@@ -64,4 +64,5 @@ return [
     'Deleted' => 'Dzēsts',
     'Email: {email} has already been taken for type: {type}' => 'Šai epasta adresei: {email} jau eksistē konfigurācija priekš : {type}',
     'Mailbox Name' => 'Epasts',
+    'Can not send mail' => 'Kļuda sūtot epastu',
 ];
