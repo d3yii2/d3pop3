@@ -3,7 +3,6 @@
 namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
-use d3yii2\d3pop3\models\D3pop3ConnectingSmtpSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
@@ -15,6 +14,7 @@ use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\User;
+use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 
 class D3Mail
 {
@@ -396,6 +396,22 @@ class D3Mail
         }
         return $this->email->body_plain;
     }
+
+    public function init(string $createdBy)
+    {
+        $fromList = ConnectingSettingsDict::getFromList();
+        reset($fromList);
+        $email = key($fromList);
+        $this->setEmailId([
+            $createdBy,
+            \Yii::$app->SysCmp->getActiveCompanyId(),
+            \Yii::$app->user->getId(),
+             date('YmdHis')
+        ])
+        ->setFromEmail($email)
+        ->setFromName($fromList[$email]);
+    }
+
 
     /**
      * @return D3Mail
