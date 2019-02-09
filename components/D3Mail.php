@@ -416,14 +416,16 @@ class D3Mail
         $fromList = ConnectingSettingsDict::getFromList();
         reset($fromList);
         $email = key($fromList);
-        $this->setEmailId([
-            $createdBy,
-            \Yii::$app->SysCmp->getActiveCompanyId(),
-            \Yii::$app->user->getId(),
-             date('YmdHis')
-        ])
-        ->setFromEmail($email)
-        ->setFromName($fromList[$email]);
+        $this
+            ->setEmailId([
+                $createdBy,
+                \Yii::$app->SysCmp->getActiveCompanyId(),
+                \Yii::$app->user->getId(),
+                date('YmdHis')
+            ])
+            ->setFromEmail($email)
+            ->setFromName($fromList[$email])
+            ->addSendReceiveOutFromCompany();
     }
 
 
