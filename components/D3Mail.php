@@ -3,7 +3,6 @@
 namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
-use d3yii2\d3pop3\models\D3pop3ConnectingSmtpSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3files\models\D3files;
