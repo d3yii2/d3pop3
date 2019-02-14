@@ -2,7 +2,6 @@
 
 namespace d3yii2\d3pop3\models;
 
-use Yii;
 use \d3yii2\d3pop3\models\base\D3pop3EmailModel as BaseD3pop3EmailModel;
 
 /**
