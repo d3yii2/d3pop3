@@ -438,7 +438,7 @@ class D3Mail
         /** @var D3pop3ConnectingSettings $settings */
         $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
 
-        if(!$settings->email){
+        if (empty($settings->email)) {
             throw new \Exception(\Yii::t('d3pop3','Please set email in My Company Email Settings'));
         }
 
