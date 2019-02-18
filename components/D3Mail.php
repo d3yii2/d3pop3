@@ -478,8 +478,10 @@ class D3Mail
         $form->from_name = $this->email->from_name;
 
         $toAdreses = $this->getToAdreses();
-        $form->cc =  [$toAdreses[0]->email_address => $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'];
-        $form->to_name = $toAdreses[0]->name;
+        $form->cc =  isset($toAdreses[0]->email_address) ? [$toAdreses[0]->email_address] : [];
+        $form->to_name = isset($toAdreses[0]->name)
+            ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
+            : '';
 
         $form->subject = $this->email->subject;
         $form->body = $this->email->body_plain;
@@ -502,7 +504,7 @@ class D3Mail
 
         if(is_array($form->to)) {
             foreach ($form->to as $to) {
-                $toName = isset($form->address_name_mappings[$to]) ? $form->address_name_mapping[$to] : $form->to_name;
+                $toName = isset($form->address_name_mapping[$to]) ? $form->address_name_mapping[$to] : $form->to_name;
                 $this->addAddressTo($to, $toName);
             }
         } else {
