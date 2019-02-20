@@ -2,7 +2,8 @@
 
 namespace d3yii2\d3pop3\components;
 
-use d3yii2\d3pop3\models\D3pop3Actions;
+use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
+use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use unyii2\imap\IncomingMailAttachment;
 use Yii;
 use d3yii2\d3files\models\D3files;
@@ -155,6 +156,21 @@ class ReadEmails {
 
                         //unlink($t->filePath);
                     }
+
+                    /**
+                     * add to company inbox
+                     */
+
+                    $sendReceiv = new D3pop3SendReceiv();
+                    $sendReceiv->email_id = $email->id;
+                    $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_IN;
+                    if($cc->getId() && $settingRecord = D3pop3ConnectingSettings::findOne($cc->getId())) {
+                        $sendReceiv->company_id = $settingRecord->sys_company_id;
+                    }
+                    $sendReceiv->setting_id = $cc->getId();
+                    $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
+                    $sendReceiv->save();
+
                     echo PHP_EOL;
                 }
 
