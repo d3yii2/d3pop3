@@ -53,6 +53,37 @@ class D3Mail
     private $attachmentList = [];
 
     /**
+     * @var string
+     */
+    private $email_container_class;
+
+    /**
+     * @var int
+     */
+    private $email_container_id;
+
+
+    /**
+     * @param string $email_container_class
+     * @return D3Mail
+     */
+    public function setEmailContainerClass(string $email_container_class): self
+    {
+        $this->email_container_class = $email_container_class;
+        return $this;
+    }
+
+    /**
+     * @param int $email_container_id
+     * @return D3Mail
+     */
+    public function setEmailContainerId(int $email_container_id): self
+    {
+        $this->email_container_id = $email_container_id;
+        return $this;
+    }
+
+    /**
      * @return D3pop3Email
      */
     public function getEmail(): D3pop3Email
@@ -69,12 +100,16 @@ class D3Mail
     }
 
     /**
-     * @param array $emailIdList
+     * @param array|string $emailIdList
      * @return $this
      */
-    public function setEmailId(array $emailIdList)
+    public function setEmailId($emailId): self
     {
-        $this->emailId = implode('-', $emailIdList);
+        if(is_array($emailId)) {
+            $this->emailId = implode('-', $emailId);
+        }else{
+            $this->emailId = $emailId;
+        }
         return $this;
     }
 
@@ -163,6 +198,36 @@ class D3Mail
         return $this;
     }
 
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this
+     */
+    public function addAddressCc(string $email, $name = null): self
+    {
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this
+     */
+    public function addAddressReply(string $email, $name = null): self
+    {
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
+    }
+
     private function clearAddressTo()
     {
         $this->addressList = [];
@@ -230,6 +295,8 @@ class D3Mail
         $this->email->from_name = $this->from_name;
         $this->email->from = $this->from_email;
         $this->email->from_user_id = $this->from_user_id;
+        $this->email->email_container_id = $this->email_container_id;
+        $this->email->email_container_class = $this->email_container_class;
         if (!$this->email->save()) {
             throw new \Exception('D3pop3Email save error: ' . json_encode($this->email->getErrors()));
         }
