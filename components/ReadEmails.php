@@ -54,7 +54,7 @@ class ReadEmails {
                 echo 'Messages count:' . count($mailsIds) . PHP_EOL;
                 foreach ($mailsIds as $i => $mailId) {
 
-                    $transaction = \Yii::$app->db->beginTransaction();
+
 
                     $msg = $mailbox->getMail($mailId);
                     echo $i . ' Subject:' . $msg->subject . PHP_EOL;
@@ -69,6 +69,7 @@ class ReadEmails {
                     /**
                      * load attachments and bodies
                      */
+                    $transaction = \Yii::$app->db->beginTransaction();
                     $msg = $mailbox->getMailParts($msg);
 
                     $d3mail = new D3Mail();
@@ -80,14 +81,14 @@ class ReadEmails {
                         ->setFromEmail( $msg->fromAddress)
                         ->setEmailContainerClass($containerClass)
                         ->setEmailContainerId($cc->getId())
+                        ->setEmailId($msg->id)
                         ;
 
                     if($containerClass === SettingEmailContainer::class){
-                        if($setting = D3pop3ConnectingSettings::findOne($cc->getId())){
+                        if($setting = D3pop3ConnectingSettings::find()->andWhere(['id' => $cc->getId()])->one()){
                             $d3mail->addSendReceiveToInCompany($setting->sys_company_id);
                         }
                     }
-
 
                     foreach ($msg->to as $toEmail => $toName){
                         $d3mail->addAddressTo($toEmail, $toName);
@@ -101,7 +102,7 @@ class ReadEmails {
                         $d3mail->addAddressTo($rtEmail, $rtName);
                     }
 
-                    $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i';
+                    $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip|csv)$/i';
 
                     /** @var IncomingMailAttachment $t */
                     foreach ($msg->getAttachments() as $t) {

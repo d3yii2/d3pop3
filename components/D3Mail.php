@@ -127,7 +127,7 @@ class D3Mail
      * @param string $bodyPlain
      * @return $this
      */
-    public function setBodyPlain(string $bodyPlain): self
+    public function setBodyPlain($bodyPlain): self
     {
         $this->bodyPlain = $bodyPlain;
         return $this;
@@ -137,7 +137,7 @@ class D3Mail
      * @param string $bodyHtml
      * @return D3Mail
      */
-    public function setBodyHtml(string  $bodyHtml): self
+    public function setBodyHtml($bodyHtml): self
     {
         $this->bodyHtml = $bodyHtml;
         return $this;
