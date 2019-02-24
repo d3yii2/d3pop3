@@ -13,6 +13,7 @@ use unyii2\imap\Mailbox;
 use unyii2\imap\ImapConnection;
 use d3yii2\d3pop3\models\D3pop3EmailError;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
+use yii\base\Exception;
 use yii\helpers\FileHelper;
 use yii\helpers\VarDumper;
 
@@ -169,7 +170,13 @@ class ReadEmails {
                     }
                     $sendReceiv->setting_id = $cc->getId();
                     $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
-                    $sendReceiv->save();
+                    if(!$sendReceiv->save()){
+                        throw new Exception(
+                            'Can not create D3pop3SendReceiv record:'
+                            . VarDumper::dumpAsString($sendReceiv->getAttributes())
+                            . VarDumper::dumpAsString($sendReceiv->getErrors())
+                        );
+                    }
 
                     echo PHP_EOL;
                 }
