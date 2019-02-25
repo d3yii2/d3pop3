@@ -100,7 +100,7 @@ class D3Mail
     }
 
     /**
-     * @param array|string $emailIdList
+     * @param array|string $emailId
      * @return $this
      */
     public function setEmailId($emailId): self
@@ -289,6 +289,7 @@ class D3Mail
         }
         $this->email->email_datetime = date('Y-m-d H:i:s');
         $this->email->receive_datetime = date('Y-m-d H:i:s');
+        $this->email->email_id = $this->emailId;
         $this->email->subject = $this->subject;
         $this->email->body = $this->bodyHtml;
         $this->email->body_plain = $this->bodyPlain;
