@@ -58,12 +58,10 @@ class ReadEmails
                 $message = 'Container class: ' . $containerClass . '; ; Error: ' . $e->getMessage();
                 echo $message . PHP_EOL;
                 \Yii::error($message);
-                \Yii::error(VarDumper::export($e->getTrace()));
                 Action::error($cc->getId(), $message);
                 continue;
             }
             foreach ($mailsIds as $i => $mailId) {
-
 
                 $msg = $mailbox->getMail($mailId);
                 echo $i . ' Subject:' . $msg->subject . PHP_EOL;
@@ -91,7 +89,7 @@ class ReadEmails
                         ->setFromEmail($msg->fromAddress)
                         ->setEmailContainerClass($containerClass)
                         ->setEmailContainerId($cc->getId())
-                        ->setEmailId($msg->id);
+                        ->setEmailId($msg->messageId);
 
                     if ($containerClass === SettingEmailContainer::class) {
                         if ($setting = D3pop3ConnectingSettings::find()->andWhere(['id' => $cc->getId()])->one()) {
