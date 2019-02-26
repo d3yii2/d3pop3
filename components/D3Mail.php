@@ -12,6 +12,7 @@ use d3yii2\d3pop3\models\D3pPerson;
 use Html2Text\Html2Text;
 use yii\db\ActiveRecord;
 use yii\db\Exception;
+use yii\helpers\VarDumper;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\User;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
@@ -418,7 +419,18 @@ class D3Mail
             $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
         }
 
-        return $message->send();
+        if(!$message->send()){
+            if(isset($tranportConfig)) {
+                \Yii::error('Can not send email. '
+                    . VarDumper::dumpAsString($tranportConfig)
+                );
+            }else{
+                \Yii::error('Can not send by default mailer.');
+            }
+            return false;
+        }
+
+        return true;
     }
 
     /**
