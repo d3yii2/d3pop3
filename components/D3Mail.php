@@ -419,18 +419,20 @@ class D3Mail
             $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
         }
 
-        if(!$message->send()){
+        try{
+            return $message->send();
+        }catch (\Exception $e){
+            \Yii::error('Send exception message: ' . $e->getMessage());
             if(isset($tranportConfig)) {
+
                 \Yii::error('Can not send email. '
                     . VarDumper::dumpAsString($tranportConfig)
                 );
             }else{
                 \Yii::error('Can not send by default mailer.');
             }
-            return false;
+            throw new $e;
         }
-
-        return true;
     }
 
     /**
