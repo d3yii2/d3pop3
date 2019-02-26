@@ -431,7 +431,7 @@ class D3Mail
             }else{
                 \Yii::error('Can not send by default mailer.');
             }
-            throw new $e;
+            throw $e;
         }
     }
 
