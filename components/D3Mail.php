@@ -513,6 +513,8 @@ class D3Mail
 
 
     /**
+     * Nosūta no tā paša epasta, uz kuru saņemts. Mekle pēc setting id
+     *
      * @return D3Mail
      * @throws \Exception
      */
@@ -535,9 +537,6 @@ class D3Mail
             ->setFromEmail($settings->email)
             ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
             ->addSendReceiveOutFromCompany()
-            //->addSendReceiveToInCompany($model->partner_id)
-            //->setEmailModel($model)
-            //->addAttachment($fileName,$filePath)
             ;
 
         if($replyAddreses = $this->getReplyAddreses()) {

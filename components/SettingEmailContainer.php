@@ -6,6 +6,7 @@ use afinogen89\getmail\message\Message;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
+use d3yii2\d3pop3\models\TypeSmtpForm;
 use unyii2\imap\IncomingMail;
 use yii\helpers\Json;
 
@@ -71,9 +72,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     public function fetchEmailSmtpData($email) {
 
         if(!$this->loadedData){
-            $this->data = D3pop3ConnectingSettings::findOne(
-                ['email' => $email, 'type' => \d3yii2\d3pop3\models\base\D3pop3ConnectingSettings::TYPE_SMTP]
-            );
+            $this->data = D3pop3ConnectingSettings::findOneByEmail($email);
             $this->loadedData = true;
         }
 
@@ -84,13 +83,12 @@ class SettingEmailContainer implements EmailContainerInerface {
         $dataRow = $this->data;
         $settings = Json::decode($dataRow->settings);
         $this->currentData['id'] = $dataRow->id;
-        $this->currentData['host'] = $settings['host'];
-        $this->currentData['user'] = $settings['user'];
-        $this->currentData['password'] = $settings['password'];
-        $this->currentData['ssl'] = $settings['ssl'];
-        $this->currentData['port'] = (int)($settings['port']??993);
-        
- 
+        $this->currentData['host'] = $settings['smtpHost']??$settings['host'];
+        $this->currentData['user'] = $settings['smtpUser']??$settings['user'];
+        $this->currentData['password'] = $settings['smtpPassword']??$settings['password'];
+        $this->currentData['ssl'] = $settings['smtpSsl']??TypeSmtpForm::SSL_ENCRYPTION_SSL;
+        $this->currentData['port'] = (int)($settings['smtpPort']??993);
+
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
         $this->serachByEmailField = $dataRow->search_by_email_field;

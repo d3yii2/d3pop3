@@ -67,4 +67,9 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
     }
 
 
+    public static function  findOneByEmail(string $email)
+    {
+        return self::findOne(['email'=>$email]);
+    }
+
 }

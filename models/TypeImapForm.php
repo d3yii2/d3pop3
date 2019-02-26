@@ -34,6 +34,12 @@ class TypeImapForm extends Model
     /** @var bool */
     public $novalidateCert = false;
 
+    public $smtpHost;
+    public $smtpUser;
+    public $smtpPassword;
+    public $smtpSsl;
+    public $smtpPort;
+
     public function init()
     {
         parent::init();
@@ -47,9 +53,18 @@ class TypeImapForm extends Model
             [['markAsRead'], 'default', 'value'=> 1],
             [['deleteAfterDays'], 'default', 'value'=> 10],
             [['host', 'user', 'password', 'port', 'directory'], 'required'],
-            [['host', 'user', 'password'], 'string'],
-            [['port', 'deleteAfterDays'], 'integer'],
+            [['host', 'user', 'password','smtpHost', 'smtpUser', 'smtpPassword'], 'string'],
+            [['port', 'deleteAfterDays','smtpPort'], 'integer'],
             [['ssl', 'markAsRead'], 'boolean', 'trueValue' => '1', 'falseValue' => '0'],
+            [
+                'smtpSsl',
+                'in',
+                'range' => [
+                    TypeSmtpForm::SSL_ENCRYPTION_NONE,
+                    TypeSmtpForm::SSL_ENCRYPTION_SSL,
+                    TypeSmtpForm::SSL_ENCRYPTION_TLS
+                ]
+            ]
 
         ];
     }
@@ -64,6 +79,11 @@ class TypeImapForm extends Model
             'port' => \Yii::t('d3pop3', 'Port'),
             'markAsRead' => \Yii::t('d3pop3', 'Mark As Read'),
             'deleteAfterDays' => \Yii::t('d3pop3', 'Delete messages after days'),
+            'smtpHost' => \Yii::t('d3pop3', 'SMTP Host'),
+            'smtpUser' => \Yii::t('d3pop3', 'SMTP User'),
+            'smtpPassword' => \Yii::t('d3pop3', 'SMTP Password'),
+            'smtpSsl' => \Yii::t('d3pop3', 'SMTP SSL'),
+            'smtpPort' => \Yii::t('d3pop3', 'SMTP Port'),
         ];
     }
 
