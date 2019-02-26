@@ -2,9 +2,8 @@
 
 namespace d3yii2\d3pop3\components;
 
-use d3yii2\d3pop3\components\EmailContainerInerface;
-use app\models\Test;
-use afinogen89\getmail\message\Message;
+use d3yii2\d3pop3\models\D3pop3Email;
+use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use unyii2\imap\IncomingMail;
 
 class ConfigEmailContainer implements EmailContainerInerface {
@@ -56,6 +55,31 @@ class ConfigEmailContainer implements EmailContainerInerface {
 
     public function getPassword(){
         return $this->currentData['password'];
+    }
+
+    public function setReceiver(D3pop3Email $email)
+    {
+        $sendReceiv = new D3pop3SendReceiv();
+        $sendReceiv->email_id = $email->id;
+        $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_IN;
+//        $sendReceiv->company_id = $this->record->sys_company_id;
+//        $sendReceiv->setting_id = $this->record->id;
+        $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
+        $sendReceiv->save();
+    }
+
+    public function getId(){
+        return $this->currentData['id'];
+    }
+
+    public function getMarkAsRead()
+    {
+        return $this->currentData['markAsRead'];
+    }
+
+    public function getDeleteAfterDays()
+    {
+        return $this->currentData['deleteAfterDays'];
     }
 
     /**

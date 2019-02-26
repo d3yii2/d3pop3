@@ -29,6 +29,8 @@ interface EmailContainerInerface {
     public function getUserName();
     public function getPassword();
     public function getId();
+    public function getMarkAsRead();
+    public function getDeleteAfterDays();
 
     public function setReceiver(D3pop3Email  $email);
 }

@@ -47,7 +47,11 @@ class ReadEmails
                 $mailbox = new Mailbox($imapConnection);
                 $mailbox->readMailParts = false;
 
-                $mailsIds = $mailbox->searchMailbox('ALL');
+                if($cc->getMarkAsRead()){
+                    $mailsIds = $mailbox->searchMailboxUnseen();
+                }else {
+                    $mailsIds = $mailbox->searchMailbox();
+                }
                 if (!$mailsIds) {
                     echo 'Mailbox is empty' . PHP_EOL;
                     continue;
@@ -61,6 +65,7 @@ class ReadEmails
                 Action::error($cc->getId(), $message);
                 continue;
             }
+            $expungeMails = false;
             foreach ($mailsIds as $i => $mailId) {
 
                 $msg = $mailbox->getMail($mailId);
@@ -70,6 +75,13 @@ class ReadEmails
 
                 if (D3pop3Email::findOne(['email_id' => $msg->messageId])) {
                     echo $i . ' Message already loaded' . PHP_EOL;
+                    $nowDate = new \DateTime();
+                    $msgDate = new \DateTime($msg->date);
+                    if($nowDate->diff($msgDate)->format('%a') > $cc->getDeleteAfterDays()){
+                        echo $i . ' Delete message (expire days = '.$cc->getDeleteAfterDays().') ' . PHP_EOL;
+                        $mailbox->deleteMail($mailId);
+                        $expungeMails = true;
+                    }
                     continue;
                 }
 
@@ -83,6 +95,7 @@ class ReadEmails
                     $d3mail = new D3Mail();
                     $d3mail->setEmailId($msg->messageId)
                         ->setSubject($msg->subject)
+                        ->setEmailDatetime($msg->date)
                         ->setBodyPlain($msg->textPlain)
                         ->setBodyHtml($msg->textHtml)
                         ->setFromName($msg->fromName)
@@ -117,7 +130,13 @@ class ReadEmails
                         $d3mail->addAttachment($t->name, $t->filePath, $fileTypes);
                     }
                     $d3mail->save();
+                    if($cc->getMarkAsRead()) {
+                        $mailbox->markMailAsRead($cc->getId());
+                        $expungeMails = true;
+                    }
+
                     $transaction->commit();
+
                     echo PHP_EOL;
                 } catch (\Exception $e) {
                     $transaction->rollBack();
@@ -130,6 +149,9 @@ class ReadEmails
                 }
             }
 
+            if($expungeMails){
+                $mailbox->expungeDeletedMails();
+            }
 
         }
 

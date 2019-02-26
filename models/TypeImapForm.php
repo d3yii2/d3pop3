@@ -25,6 +25,12 @@ class TypeImapForm extends Model
     /** @var string */
     public $directory;
 
+    /** @var bool mark mail as read after reading */
+    public $markAsRead = true;
+
+    /** @var int  */
+    public $deleteAfterDays = 10;
+
     /** @var bool */
     public $novalidateCert = false;
 
@@ -38,10 +44,12 @@ class TypeImapForm extends Model
     public function rules()
     {
         return [
+            [['markAsRead'], 'default', 'value'=> 1],
+            [['deleteAfterDays'], 'default', 'value'=> 10],
             [['host', 'user', 'password', 'port', 'directory'], 'required'],
             [['host', 'user', 'password'], 'string'],
-            [['port'], 'integer'],
-            [['ssl'], 'boolean', 'trueValue' => '1', 'falseValue' => '0'],
+            [['port', 'deleteAfterDays'], 'integer'],
+            [['ssl', 'markAsRead'], 'boolean', 'trueValue' => '1', 'falseValue' => '0'],
 
         ];
     }
@@ -54,6 +62,8 @@ class TypeImapForm extends Model
             'password' => \Yii::t('d3pop3', 'Password'),
             'ssl' => \Yii::t('d3pop3', 'Use SSL'),
             'port' => \Yii::t('d3pop3', 'Port'),
+            'markAsRead' => \Yii::t('d3pop3', 'Mark As Read'),
+            'deleteAfterDays' => \Yii::t('d3pop3', 'Delete messages after days'),
         ];
     }
 

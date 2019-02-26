@@ -49,7 +49,9 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
         $this->currentData['novalidateCert'] = (int)($settings['novalidateCert']??0);
         $this->currentData['port'] = (int)($settings['port']??993);
-        
+        $this->currentData['markAsRead'] = $settings['markAsRead']??true;
+        $this->currentData['deleteAfterDays'] = (int)($settings['deleteAfterDays']??10);
+
         if(isset($settings['directory'])) {
             $this->currentData['directory'] = $settings['directory'];
         } else {
@@ -147,6 +149,16 @@ class SettingEmailContainer implements EmailContainerInerface {
 
     public function getId(){
         return $this->currentData['id'];
+    }
+
+    public function getMarkAsRead()
+    {
+        return $this->currentData['markAsRead'];
+    }
+
+    public function getDeleteAfterDays()
+    {
+        return $this->currentData['deleteAfterDays'];
     }
 
     /**

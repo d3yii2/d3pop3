@@ -33,6 +33,9 @@ class D3Mail
     /** @var string */
     private $bodyHtml;
 
+    /** @var string */
+    private $emailDatetime;
+
     private $from_name;
 
     private $from_email;
@@ -61,6 +64,17 @@ class D3Mail
      * @var int
      */
     private $email_container_id;
+
+
+    /**
+     * @param string $emailDatetime
+     * @return D3Mail
+     */
+    public function setEmailDatetime(string $emailDatetime): self
+    {
+        $this->emailDatetime = $emailDatetime;
+        return $this;
+    }
 
 
     /**
@@ -287,7 +301,9 @@ class D3Mail
         if(!$this->email) {
             $this->email = new D3pop3Email();
         }
-        $this->email->email_datetime = date('Y-m-d H:i:s');
+
+
+        $this->email->email_datetime = $this->emailDatetime??date('Y-m-d H:i:s');
         $this->email->receive_datetime = date('Y-m-d H:i:s');
         $this->email->email_id = $this->emailId;
         $this->email->subject = $this->subject;
