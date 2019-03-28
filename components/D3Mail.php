@@ -249,7 +249,7 @@ class D3Mail
         return $this;
     }
 
-    public function addSendReceiveOutFromCompany(int $companyId = 0)
+    public function addSendReceiveOutFromCompany(int $companyId = 0, string $status = D3pop3SendReceiv::STATUS_NEW)
     {
         if(!$companyId){
             $companyId = \Yii::$app->SysCmp->getActiveCompanyId();
@@ -257,7 +257,7 @@ class D3Mail
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
         $sendReceiv->company_id = $companyId;
-        $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
+        $sendReceiv->status = $status;
         $this->sendReceiveList[] = $sendReceiv;
         return $this;
     }
