@@ -550,7 +550,7 @@ class D3Mail
             ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
             ->setFromEmail($settings->email)
             ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
-            ->addSendReceiveOutFromCompany()
+            ->addSendReceiveOutFromCompany(0,\d3yii2\d3pop3\models\base\D3pop3SendReceiv::STATUS_DRAFT)
             ;
 
         if($replyAddreses = $this->getReplyAddreses()) {
