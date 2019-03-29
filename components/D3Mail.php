@@ -2,6 +2,7 @@
 
 namespace d3yii2\d3pop3\components;
 
+use d3system\exceptions\D3ActiveRecordException;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
@@ -14,6 +15,7 @@ use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii\helpers\VarDumper;
 use yii2d3\d3emails\models\forms\MailForm;
+use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 
@@ -575,7 +577,7 @@ class D3Mail
         $form->from_name = $this->email->from_name;
 
         $toAdreses = $this->getToAdreses();
-        $form->cc =  isset($toAdreses[0]->email_address) ? [$toAdreses[0]->email_address] : [];
+        $form->to =  isset($toAdreses[0]->email_address) ? [$toAdreses[0]->email_address] : [];
         $form->to_name = isset($toAdreses[0]->name)
             ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
             : '';
@@ -599,16 +601,52 @@ class D3Mail
         ->setSubject($form->subject)
         ->setBodyPlain($form->body);
 
-        if(is_array($form->to)) {
-            foreach ($form->to as $to) {
-                $toName = isset($form->address_name_mapping[$to]) ? $form->address_name_mapping[$to] : $form->to_name;
-                $this->addAddressTo($to, $toName);
-            }
-        } else {
-            $this->addAddressTo($form->to,$form->to_name);
-        }
+        $this->setRecipients($form, 'to', 'To');
+        $this->setRecipients($form, 'cc', 'Cc');
+        //@TODO - jāpieliek tabulā & migrācija
+        //$this->setRecipients($form, 'bcc', 'Bcc');
 
         return true;
+    }
 
+    /**
+     * @param MailForm $form
+     * @param string $attr
+     * @param string $type
+     * @throws D3ActiveRecordException
+     */
+    private function setRecipients(MailForm $form, string $attr, string $type): void
+    {
+        $contactIds = [];
+        $emails = [];
+
+        foreach ($form->$attr as $i => $target) {
+            if (!is_numeric($target)) {
+                $emails[] = $target;
+                continue;
+            }
+            $contactIds[] = (int) $target;
+        }
+
+        if (!empty($contactIds)) {
+
+            $contacts = D3pPersonContact::find()->where(['in', 'id', $contactIds])->with('person')->all();
+
+            if (!$contacts) {
+                throw new D3ActiveRecordException($contact, 'Contacts not found');
+            }
+
+            foreach ($contacts as $contact) {
+                $name = $contact->person->first_name . ' ' . $contact->person->last_name;
+
+                $methodName = 'addAddress' . $type;
+
+                $this->$methodName($contact->contact_value, $name);
+            }
+        }
+
+        foreach ($emails as $email) {
+            $this->addAddressTo($email, $email);
+        }
     }
 }
