@@ -578,7 +578,7 @@ class D3Mail
         $form->from_name = $this->email->from_name;
 
         $toAdreses = $this->getToAdreses();
-        $form->to =  isset($toAdreses[0]->email_address) ? [$toAdreses[0]->email_address] : [];
+        $form->to[] =  $toAdreses[0]->email_address ?? '';
         $form->to_name = isset($toAdreses[0]->name)
             ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
             : '';
