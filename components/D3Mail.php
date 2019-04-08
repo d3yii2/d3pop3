@@ -14,6 +14,7 @@ use Html2Text\Html2Text;
 use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii\helpers\VarDumper;
+use yii2d3\d3emails\logic\Email;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
@@ -583,7 +584,10 @@ class D3Mail
             : '';
 
         $form->subject = $this->email->subject;
-        $form->body = $this->email->body_plain;
+
+        $signatureModel = Email::getActiveCompanySignatureModel();
+
+        $form->body = $this->email->body_plain . ($signatureModel->signature ?? '');
 
         return $form;
 
