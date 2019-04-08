@@ -569,6 +569,41 @@ class D3Mail
     }
 
     /**
+     * @return D3Mail
+     * @throws \Html2Text\Html2TextException
+     */
+    public function createComposed(): self
+    {
+
+        /** @var D3pop3ConnectingSettings $settings */
+        $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
+
+        if (empty($settings->email)) {
+            throw new \Exception(\Yii::t('d3pop3','Please set email in My Company Email Settings'));
+        }
+
+        $replyD3Mail = new self();
+
+        $replyD3Mail->setEmailId(['Composed',\Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
+            ->setSubject($this->email->subject)
+            ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
+            ->setFromEmail($settings->email)
+            ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
+            ->addSendReceiveOutFromCompany();
+
+        if($replyAddreses = $this->getReplyAddreses()) {
+            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
+
+        }else{
+            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
+        }
+        $replyD3Mail->save();
+
+        return $replyD3Mail;
+
+    }
+
+    /**
      * @param MailForm $form
      * @return MailForm
      */
