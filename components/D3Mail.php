@@ -620,13 +620,13 @@ class D3Mail
 
         $form->subject = $this->email->subject;
 
+        $form->body .= $this->email->body_plain;
+
         $signatureModel = Email::getActiveCompanySignatureModel();
 
         if (!empty($signatureModel->signature)) {
-            $form->body .= $signatureModel->signature . PHP_EOL . PHP_EOL;
+            $form->body .=  PHP_EOL . PHP_EOL . $signatureModel->signature;
         }
-
-        $form->body .= $this->email->body_plain;
 
         return $form;
 
