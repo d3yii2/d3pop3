@@ -61,3 +61,6 @@ In configuration under 'ConfigEmailContainerData' set:
 * model with namespace for attaching emails
 * model field name, where search email to field value for ataching email
 
+## DB
+
+![alt text](https://github.com/d3yii2/d3pop3/blob/master/doc/DbSchema.jpg)
