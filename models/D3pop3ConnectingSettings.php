@@ -4,6 +4,8 @@ namespace d3yii2\d3pop3\models;
 
 use d3yii2\d3pop3\components\Action;
 use \d3yii2\d3pop3\models\base\D3pop3ConnectingSettings as BaseD3pop3ConnectingSettings;
+use Yii;
+use yii\web\Application;
 
 /**
  * This is the model class for table "d3pop3_connecting_settings".
@@ -18,7 +20,7 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
             [
                 'email', 'unique',
                 'targetAttribute' => ['email', 'type'],
-                'comboNotUnique' => \Yii::t(
+                'comboNotUnique' => Yii::t(
                     'd3pop3',
                     'Email: {email} has already been taken for type: {type}',
                     ['email' => $this->email, 'type' => $this->type]) //@FIXME - translate nerāda epasta adresi, bet tikai tipu?
@@ -54,16 +56,13 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
     public static function find()
     {
 
-        if (\Yii::$app instanceof \yii\web\Application) {
+        if (Yii::$app instanceof Application) {
             return parent::find()->where([
-                'sys_company_id' => \Yii::$app->SysCmp->getActiveCompanyId(),
-                'deleted' => 0
+                'sys_company_id' => Yii::$app->SysCmp->getActiveCompanyId(),
             ]);
         }
 
-        return parent::find()->where([
-            'deleted' => 0
-        ]);
+        return parent::find();
     }
 
 

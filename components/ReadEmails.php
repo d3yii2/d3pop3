@@ -3,6 +3,8 @@
 namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
+use DateTime;
+use Exception;
 use unyii2\imap\IncomingMailAttachment;
 use Yii;
 use d3yii2\d3pop3\models\D3pop3Email;
@@ -58,10 +60,10 @@ class ReadEmails
                 }
 
                 echo 'Messages count:' . count($mailsIds) . PHP_EOL;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $message = 'Container class: ' . $containerClass . '; ; Error: ' . $e->getMessage();
                 echo $message . PHP_EOL;
-                \Yii::error($message);
+                Yii::error($message);
                 Action::error($cc->getId(), $message);
                 continue;
             }
@@ -75,8 +77,8 @@ class ReadEmails
 
                 if (D3pop3Email::findOne(['email_id' => $msg->messageId])) {
                     echo $i . ' Message already loaded' . PHP_EOL;
-                    $nowDate = new \DateTime();
-                    $msgDate = new \DateTime($msg->date);
+                    $nowDate = new DateTime();
+                    $msgDate = new DateTime($msg->date);
                     if($nowDate->diff($msgDate)->format('%a') > $cc->getDeleteAfterDays()){
                         echo $i . ' Delete message (expire days = '.$cc->getDeleteAfterDays().') ' . PHP_EOL;
                         $mailbox->deleteMail($mailId);
@@ -85,7 +87,7 @@ class ReadEmails
                     continue;
                 }
 
-                $transaction = \Yii::$app->db->beginTransaction();
+                $transaction = Yii::$app->db->beginTransaction();
                 try {
                     /**
                      * load attachments and bodies
@@ -105,7 +107,12 @@ class ReadEmails
                         ->setEmailId($msg->messageId);
 
                     if ($containerClass === SettingEmailContainer::class) {
-                        if ($setting = D3pop3ConnectingSettings::find()->andWhere(['id' => $cc->getId()])->one()) {
+                        if ($setting = D3pop3ConnectingSettings::find()
+                            ->andWhere([
+                                'id' => $cc->getId(),
+                                'deleted' => 0
+                            ])
+                            ->one()) {
                             $d3mail->addSendReceiveToInCompany($setting->sys_company_id);
                         }
                     }
@@ -138,12 +145,12 @@ class ReadEmails
                     $transaction->commit();
 
                     echo PHP_EOL;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $transaction->rollBack();
                     $message = 'Container class: ' . $containerClass . '; Error: ' . $e->getMessage();
                     echo $message . PHP_EOL;
-                    \Yii::error($message);
-                    \Yii::error(VarDumper::export($e->getTrace()));
+                    Yii::error($message);
+                    Yii::error(VarDumper::export($e->getTrace()));
                     Action::error($cc->getId(), $message);
                     continue;
                 }

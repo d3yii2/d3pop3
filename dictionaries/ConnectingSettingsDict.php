@@ -12,7 +12,10 @@ class ConnectingSettingsDict
     public static function getFromList(): array
     {
         return ArrayHelper::map(
-            D3pop3ConnectingSettings::find()->asArray()->all(),
+            D3pop3ConnectingSettings::find()
+                ->andWhere(['deleted' => 0])
+                ->asArray()
+                ->all(),
             'email',
             'email'
         );
