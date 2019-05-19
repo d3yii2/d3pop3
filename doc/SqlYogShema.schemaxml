@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemadesigner version="6.5">
+<source>
+<database charset="latin1" collation="latin1_swedish_ci">blankon</database>
+</source>
+<canvas zoom="100">
+<tables>
+<table name="d3pop3_connecting_settings" view="colnames">
+<left>17</left>
+<top>229</top>
+<width>166</width>
+<height>250</height>
+<sql_create_table>CREATE TABLE `d3pop3_connecting_settings` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `sys_company_id` smallint(5) unsigned NOT NULL,
+  `person_id` smallint(5) unsigned DEFAULT NULL COMMENT 'Person',
+  `model` text COMMENT 'Model',
+  `model_search_field` varchar(255) DEFAULT NULL COMMENT 'Model search field',
+  `search_by_email_field` varchar(255) DEFAULT NULL COMMENT 'Search by email field',
+  `type` enum('pop3','gmail','imap','smtp') DEFAULT NULL COMMENT 'Type',
+  `email` varchar(255) DEFAULT NULL COMMENT 'Email',
+  `settings` text COMMENT 'Settings',
+  `notes` text CHARACTER SET utf8,
+  `deleted` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Deleted',
+  PRIMARY KEY (`id`),
+  KEY `sys_company_id` (`sys_company_id`),
+  KEY `person_id` (`person_id`),
+  CONSTRAINT `d3pop3_connecting_settings_ibfk_1` FOREIGN KEY (`sys_company_id`) REFERENCES `d3c_company` (`id`),
+  CONSTRAINT `d3pop3_connecting_settings_ibfk_2` FOREIGN KEY (`person_id`) REFERENCES `d3p_person` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=ascii</sql_create_table>
+</table>
+<table name="d3pop3_emails" view="colnames">
+<left>552</left>
+<top>237</top>
+<width>164</width>
+<height>267</height>
+<sql_create_table>CREATE TABLE `d3pop3_emails` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email_id` varchar(1000) NOT NULL DEFAULT '' COMMENT 'Email Id',
+  `email_datetime` datetime DEFAULT NULL,
+  `receive_datetime` datetime NOT NULL COMMENT 'Received',
+  `subject` text COMMENT 'Subject',
+  `body` longtext COMMENT 'Body',
+  `body_plain` longtext COMMENT 'Body Plain',
+  `from` varchar(256) DEFAULT NULL COMMENT 'From',
+  `from_name` varchar(256) DEFAULT NULL COMMENT 'From Name',
+  `from_user_id` int(11) DEFAULT NULL COMMENT 'From User',
+  `email_container_class` varchar(256) DEFAULT NULL COMMENT 'Email Container',
+  `email_container_id` int(10) unsigned DEFAULT NULL COMMENT 'Email container id',
+  PRIMARY KEY (`id`),
+  KEY `email_id` (`email_id`(7))
+) ENGINE=InnoDB AUTO_INCREMENT=770 DEFAULT CHARSET=utf8</sql_create_table>
+</table>
+<table name="d3pop3_email_address" view="colnames">
+<left>891</left>
+<top>182</top>
+<width>186</width>
+<height>148</height>
+<sql_create_table>CREATE TABLE `d3pop3_email_address` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email_id` int(10) unsigned NOT NULL,
+  `address_type` enum('To','CC','Replay') COLLATE utf8_bin DEFAULT NULL COMMENT 'Address type',
+  `email_address` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT 'Email',
+  `name` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT 'Name',
+  PRIMARY KEY (`id`),
+  KEY `email_id` (`email_id`),
+  CONSTRAINT `d3pop3_email_address_ibfk_1` FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1309 DEFAULT CHARSET=utf8 COLLATE=utf8_bin</sql_create_table>
+</table>
+<table name="d3pop3_email_error" view="colnames">
+<left>901</left>
+<top>534</top>
+<width>173</width>
+<height>114</height>
+<sql_create_table>CREATE TABLE `d3pop3_email_error` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email_id` int(10) unsigned NOT NULL COMMENT 'Email',
+  `message` text NOT NULL COMMENT 'Message',
+  PRIMARY KEY (`id`),
+  KEY `email_id` (`email_id`),
+  CONSTRAINT `d3pop3_email_error_ibfk_1` FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8</sql_create_table>
+</table>
+<table name="d3pop3_email_models" view="colnames">
+<left>906</left>
+<top>360</top>
+<width>169</width>
+<height>148</height>
+<sql_create_table>CREATE TABLE `d3pop3_email_models` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email_id` int(10) unsigned DEFAULT NULL COMMENT 'Email',
+  `model_name` varchar(50) DEFAULT NULL COMMENT 'Model',
+  `model_id` bigint(20) DEFAULT NULL COMMENT 'Model ID',
+  `status` enum('New','Read','Delete') DEFAULT 'New' COMMENT 'Status',
+  PRIMARY KEY (`id`),
+  KEY `email_id` (`email_id`),
+  CONSTRAINT `d3pop3_email_models_ibfk_1` FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=348 DEFAULT CHARSET=latin1</sql_create_table>
+</table>
+<table name="d3pop3_email_signature" view="colnames">
+<left>316</left>
+<top>71</top>
+<width>161</width>
+<height>97</height>
+<sql_create_table>CREATE TABLE `d3pop3_email_signature` (
+  `connection_setting_id` smallint(5) unsigned NOT NULL,
+  `signature` text,
+  PRIMARY KEY (`connection_setting_id`),
+  CONSTRAINT `d3pop3_email_signature_d3pop3_connecting_settings_id_fk` FOREIGN KEY (`connection_setting_id`) REFERENCES `d3pop3_connecting_settings` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1</sql_create_table>
+</table>
+<table name="d3pop3_send_receiv" view="colnames">
+<left>312</left>
+<top>249</top>
+<width>145</width>
+<height>182</height>
+<sql_create_table>CREATE TABLE `d3pop3_send_receiv` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email_id` int(10) unsigned NOT NULL COMMENT 'Email',
+  `direction` enum('in','out') NOT NULL DEFAULT 'in' COMMENT 'Direction',
+  `company_id` smallint(5) unsigned DEFAULT NULL COMMENT 'Company',
+  `person_id` smallint(5) unsigned DEFAULT NULL COMMENT 'Person',
+  `setting_id` smallint(5) unsigned DEFAULT NULL COMMENT 'Setting',
+  `status` enum('New','Read','Deleted','Draft') NOT NULL DEFAULT 'New' COMMENT 'Status',
+  PRIMARY KEY (`id`),
+  KEY `email_id` (`email_id`),
+  KEY `setting_id` (`setting_id`),
+  KEY `person_id` (`person_id`),
+  KEY `company_id` (`company_id`),
+  CONSTRAINT `d3pop3_send_receiv_ibfk_1` FOREIGN KEY (`email_id`) REFERENCES `d3pop3_emails` (`id`),
+  CONSTRAINT `d3pop3_send_receiv_ibfk_2` FOREIGN KEY (`setting_id`) REFERENCES `d3pop3_connecting_settings` (`id`),
+  CONSTRAINT `d3pop3_send_receiv_ibfk_3` FOREIGN KEY (`person_id`) REFERENCES `d3p_person` (`id`),
+  CONSTRAINT `d3pop3_send_receiv_ibfk_4` FOREIGN KEY (`company_id`) REFERENCES `d3c_company` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=483 DEFAULT CHARSET=latin1</sql_create_table>
+</table>
+</tables>
+</canvas>
+</schemadesigner>
