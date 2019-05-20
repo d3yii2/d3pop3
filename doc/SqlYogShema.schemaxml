@@ -6,8 +6,8 @@
 <canvas zoom="100">
 <tables>
 <table name="d3pop3_connecting_settings" view="colnames">
-<left>17</left>
-<top>229</top>
+<left>25</left>
+<top>24</top>
 <width>166</width>
 <height>250</height>
 <sql_create_table>CREATE TABLE `d3pop3_connecting_settings` (
@@ -30,8 +30,8 @@
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=ascii</sql_create_table>
 </table>
 <table name="d3pop3_emails" view="colnames">
-<left>552</left>
-<top>237</top>
+<left>514</left>
+<top>142</top>
 <width>164</width>
 <height>267</height>
 <sql_create_table>CREATE TABLE `d3pop3_emails` (
@@ -52,8 +52,8 @@
 ) ENGINE=InnoDB AUTO_INCREMENT=770 DEFAULT CHARSET=utf8</sql_create_table>
 </table>
 <table name="d3pop3_email_address" view="colnames">
-<left>891</left>
-<top>182</top>
+<left>753</left>
+<top>16</top>
 <width>186</width>
 <height>148</height>
 <sql_create_table>CREATE TABLE `d3pop3_email_address` (
@@ -68,8 +68,8 @@
 ) ENGINE=InnoDB AUTO_INCREMENT=1309 DEFAULT CHARSET=utf8 COLLATE=utf8_bin</sql_create_table>
 </table>
 <table name="d3pop3_email_error" view="colnames">
-<left>901</left>
-<top>534</top>
+<left>750</left>
+<top>354</top>
 <width>173</width>
 <height>114</height>
 <sql_create_table>CREATE TABLE `d3pop3_email_error` (
@@ -82,8 +82,8 @@
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8</sql_create_table>
 </table>
 <table name="d3pop3_email_models" view="colnames">
-<left>906</left>
-<top>360</top>
+<left>751</left>
+<top>185</top>
 <width>169</width>
 <height>148</height>
 <sql_create_table>CREATE TABLE `d3pop3_email_models` (
@@ -98,9 +98,9 @@
 ) ENGINE=InnoDB AUTO_INCREMENT=348 DEFAULT CHARSET=latin1</sql_create_table>
 </table>
 <table name="d3pop3_email_signature" view="colnames">
-<left>316</left>
-<top>71</top>
-<width>161</width>
+<left>276</left>
+<top>23</top>
+<width>195</width>
 <height>97</height>
 <sql_create_table>CREATE TABLE `d3pop3_email_signature` (
   `connection_setting_id` smallint(5) unsigned NOT NULL,
@@ -110,8 +110,8 @@
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1</sql_create_table>
 </table>
 <table name="d3pop3_send_receiv" view="colnames">
-<left>312</left>
-<top>249</top>
+<left>277</left>
+<top>136</top>
 <width>145</width>
 <height>182</height>
 <sql_create_table>CREATE TABLE `d3pop3_send_receiv` (
