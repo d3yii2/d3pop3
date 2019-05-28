@@ -9,6 +9,12 @@ use \d3yii2\d3pop3\models\base\D3pop3SendReceiv as BaseD3pop3SendReceiv;
  */
 class D3pop3SendReceiv extends BaseD3pop3SendReceiv
 {
+    public static function find()
+    {
+        $query = parent::find();
+        $query->andWhere(['company_id' => \Yii::$app->SysCmp->getActiveCompanyId()]);
 
+        return $query;
+    }
 
 }
