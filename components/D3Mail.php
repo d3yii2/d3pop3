@@ -15,6 +15,7 @@ use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii\helpers\VarDumper;
 use yii2d3\d3emails\logic\Email;
+use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
@@ -620,11 +621,15 @@ class D3Mail
 
         $form->subject = $this->email->subject;
 
-        $form->body .= $this->email->body_plain;
-
         $signatureModel = Email::getActiveCompanySignatureModel();
 
-        if (!empty($signatureModel->signature)) {
+        if (!empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position){
+            $form->body .= $signatureModel->signature . PHP_EOL . PHP_EOL;
+        }
+
+        $form->body .= $this->email->body_plain;
+
+        if (!empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position){
             $form->body .=  PHP_EOL . PHP_EOL . $signatureModel->signature;
         }
 
