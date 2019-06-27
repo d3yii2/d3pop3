@@ -10,7 +10,11 @@ use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
+use d3yii2\d3pop3\models\TypeSmtpForm;
 use Html2Text\Html2Text;
+use Html2Text\Html2TextException;
+use function strlen;
+use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii\helpers\VarDumper;
@@ -113,7 +117,7 @@ class D3Mail
     /**
      * @param D3pop3Email $email
      */
-    public function setEmail(D3pop3Email $email)
+    public function setEmail(D3pop3Email $email): void
     {
         $this->email = $email;
     }
@@ -136,7 +140,7 @@ class D3Mail
      * @param string $subject
      * @return $this
      */
-    public function setSubject(string $subject)
+    public function setSubject(string $subject): self
     {
         $this->subject = $subject;
         return $this;
@@ -166,7 +170,7 @@ class D3Mail
      * @param mixed $from_name
      * @return $this
      */
-    public function setFromName($from_name)
+    public function setFromName($from_name): self
     {
         $this->from_name = $from_name;
         return $this;
@@ -176,7 +180,7 @@ class D3Mail
      * @param mixed $from_email
      * @return $this
      */
-    public function setFromEmail($from_email)
+    public function setFromEmail($from_email): self
     {
         $this->from_email = $from_email;
         return $this;
@@ -256,7 +260,7 @@ class D3Mail
     public function addSendReceiveOutFromCompany(int $companyId = 0, string $status = D3pop3SendReceiv::STATUS_NEW)
     {
         if(!$companyId){
-            $companyId = \Yii::$app->SysCmp->getActiveCompanyId();
+            $companyId = Yii::$app->SysCmp->getActiveCompanyId();
         }
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
@@ -280,7 +284,7 @@ class D3Mail
      * @param ActiveRecord $model
      * @return $this
      */
-    public function setEmailModel($model)
+    public function setEmailModel($model): self
     {
         $emailModel = new D3pop3EmailModel();
         $emailModel->model_name = get_class($model);
@@ -345,7 +349,17 @@ class D3Mail
         }
 
         foreach ($this->attachmentList as $attachment) {
-            D3files::saveFile($attachment['fileName'], D3pop3Email::className(), $this->email->id, $attachment['filePath'], $attachment['fileTypes']);
+            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
+            if(!preg_match($attachment['fileTypes'],$ext)){
+                continue;
+            }
+            D3files::saveFile(
+                $attachment['fileName'],
+                D3pop3Email::class,
+                $this->email->id,
+                $attachment['filePath'],
+                $attachment['fileTypes']
+            );
         }
 
 
@@ -361,7 +375,7 @@ class D3Mail
 
     public function getAttachments()
     {
-        return D3files::getRecordFilesList(D3pop3Email::className(),$this->email->id);
+        return D3files::getRecordFilesList(D3pop3Email::class,$this->email->id);
     }
 
     public function send(): bool
@@ -389,17 +403,17 @@ class D3Mail
                     $tranportConfig['password'] = $smtpConfig['password'];
                 }
 
-                if (!empty($smtpConfig['ssl']) && \d3yii2\d3pop3\models\TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
+                if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
                     $tranportConfig['encryption'] = $smtpConfig['ssl'];
 
                     //@FIXME - should be self signed certificates supported?
                     //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
                 }
 
-                \Yii::$app->mailer->setTransport($tranportConfig);
+                Yii::$app->mailer->setTransport($tranportConfig);
             }
         }
-        $message = \Yii::$app->mailer->compose()
+        $message = Yii::$app->mailer->compose()
             ->setFrom($this->email->from)
             ->setSubject($this->email->subject);
         if($this->email->body_plain) {
@@ -426,14 +440,14 @@ class D3Mail
         try{
             return $message->send();
         }catch (\Exception $e){
-            \Yii::error('Send exception message: ' . $e->getMessage());
+            Yii::error('Send exception message: ' . $e->getMessage());
             if(isset($tranportConfig)) {
 
-                \Yii::error('Can not send email. '
+                Yii::error('Can not send email. '
                     . VarDumper::dumpAsString($tranportConfig)
                 );
             }else{
-                \Yii::error('Can not send by default mailer.');
+                Yii::error('Can not send by default mailer.');
             }
             throw $e;
         }
@@ -490,7 +504,7 @@ class D3Mail
     /**
      * ja nav plain body, konvertee HTML body
      * @return string
-     * @throws \Html2Text\Html2TextException
+     * @throws Html2TextException
      */
     private function getPlainBody(): string
     {
@@ -506,7 +520,7 @@ class D3Mail
         /**
          * apstraadaa gafdiijumu, ja plain body ir piemeeram "An HTML viewer is required to see this message"
          */
-        if(\strlen($convertedBody) > 3*\strlen($this->email->body_plain)){
+        if(strlen($convertedBody) > 3* strlen($this->email->body_plain)){
             return $convertedBody;
         }
         return $this->email->body_plain;
@@ -520,8 +534,8 @@ class D3Mail
         $this
             ->setEmailId([
                 $createdBy,
-                \Yii::$app->SysCmp->getActiveCompanyId(),
-                \Yii::$app->user->getId(),
+                Yii::$app->SysCmp->getActiveCompanyId(),
+                Yii::$app->user->getId(),
                 date('YmdHis')
             ])
             ->setFromEmail($email)
@@ -543,17 +557,17 @@ class D3Mail
         $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
 
         if (empty($settings->email)) {
-            throw new \Exception(\Yii::t('d3pop3','Please set email in My Company Email Settings'));
+            throw new \Exception(Yii::t('d3pop3','Please set email in My Company Email Settings'));
         }
 
 
         $replyD3Mail = new self();
 
-        $replyD3Mail->setEmailId(['REPLY',\Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
+        $replyD3Mail->setEmailId(['REPLY', Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
             ->setSubject('RE: ' . $this->email->subject)
             ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
             ->setFromEmail($settings->email)
-            ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
+            ->setFromName(Yii::$app->person->firstName . ' ' .  Yii::$app->person->lastName)
             ->addSendReceiveOutFromCompany(0,\d3yii2\d3pop3\models\base\D3pop3SendReceiv::STATUS_DRAFT)
             ;
 
@@ -571,7 +585,7 @@ class D3Mail
 
     /**
      * @return D3Mail
-     * @throws \Html2Text\Html2TextException
+     * @throws Html2TextException
      */
     public function createComposed(): self
     {
@@ -580,16 +594,16 @@ class D3Mail
         $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
 
         if (empty($settings->email)) {
-            throw new \Exception(\Yii::t('d3pop3','Please set email in My Company Email Settings'));
+            throw new \Exception(Yii::t('d3pop3','Please set email in My Company Email Settings'));
         }
 
         $replyD3Mail = new self();
 
-        $replyD3Mail->setEmailId(['Composed',\Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
+        $replyD3Mail->setEmailId(['Composed', Yii::$app->SysCmp->getActiveCompanyId(), 'MAIL', $this->email->id, date('YmdHis')])
             ->setSubject($this->email->subject)
             ->setBodyPlain('> ' . str_replace("\n","\n> ",$this->getPlainBody()))
             ->setFromEmail($settings->email)
-            ->setFromName(\Yii::$app->person->firstName . ' ' .  \Yii::$app->person->lastName)
+            ->setFromName(Yii::$app->person->firstName . ' ' .  Yii::$app->person->lastName)
             ->addSendReceiveOutFromCompany();
 
         if($replyAddreses = $this->getReplyAddreses()) {
@@ -640,6 +654,7 @@ class D3Mail
     /**
      * @param MailForm $form
      * @return bool
+     * @throws D3ActiveRecordException
      */
     public function loadFromForm(MailForm $form): bool
     {
@@ -681,7 +696,7 @@ class D3Mail
             $contacts = D3pPersonContact::find()->where(['in', 'id', $contactIds])->with('person')->all();
 
             if (!$contacts) {
-                throw new D3ActiveRecordException($contact, 'Contacts not found');
+                throw new D3ActiveRecordException($contacts, 'Contacts not found');
             }
 
             foreach ($contacts as $contact) {

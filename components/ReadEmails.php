@@ -17,9 +17,15 @@ class ReadEmails
 {
 
     /**
+     * @var string regular expression for attachment extension validation
+     */
+    public static $allowedAttachmentFileExtensions;
+
+    /**
      * @param EmailContainerInerface $cc
      * @param $containerClass
      * @return bool
+     * @throws \unyii2\imap\Exception
      */
     public static function readImap(EmailContainerInerface $cc, $containerClass)
     {
@@ -106,8 +112,7 @@ class ReadEmails
                         ->setEmailContainerId($cc->getId())
                         ->setEmailId($msg->messageId);
 
-                    if ($containerClass === SettingEmailContainer::class) {
-                        if ($setting = D3pop3ConnectingSettings::find()
+                    if (($containerClass === SettingEmailContainer::class) && $setting = D3pop3ConnectingSettings::find()
                             ->andWhere([
                                 'id' => $cc->getId(),
                                 'deleted' => 0
@@ -115,7 +120,6 @@ class ReadEmails
                             ->one()) {
                             $d3mail->addSendReceiveToInCompany($setting->sys_company_id);
                         }
-                    }
 
                     foreach ($msg->to as $toEmail => $toName) {
                         $d3mail->addAddressTo($toEmail, $toName);
@@ -129,12 +133,15 @@ class ReadEmails
                         $d3mail->addAddressTo($rtEmail, $rtName);
                     }
 
-                    $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip|csv)$/i';
-
                     /** @var IncomingMailAttachment $t */
                     foreach ($msg->getAttachments() as $t) {
+                        $ext = pathinfo($t->name, PATHINFO_EXTENSION);
+                        if(!preg_match(self::$allowedAttachmentFileExtensions,$ext)){
+                            echo $i . ' Ignored attachment:' . $t->name . PHP_EOL;
+                            continue;
+                        }
                         echo $i . ' A:' . $t->name . PHP_EOL;
-                        $d3mail->addAttachment($t->name, $t->filePath, $fileTypes);
+                        $d3mail->addAttachment($t->name, $t->filePath, self::$allowedAttachmentFileExtensions);
                     }
                     $d3mail->save();
                     if($cc->getMarkAsRead()) {

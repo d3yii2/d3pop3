@@ -3,6 +3,8 @@
 namespace d3yii2\d3pop3\command;
 
 use d3yii2\d3pop3\components\Action;
+use unyii2\imap\Exception;
+use Yii;
 use yii\console\Controller;
 use d3yii2\d3pop3\components\ReadEmails;
 use yii\console\ExitCode;
@@ -15,13 +17,17 @@ class D3Pop3Controller extends Controller {
      *
      * @param bool $container
      * @return int
+     * @throws Exception
      */
     public function actionRead($container = false) {
+
+        ReadEmails::$allowedAttachmentFileExtensions = Yii::$app->getModule('D3Pop3')->allowedAttachmentFileExtensions;
+
         $deletedRows = Action::clearOldRecords(2);
         $this->stdOutLine('Deleted ' . $deletedRows . ' from table d3pop3_actions oldest as 2 hours');
         $error = false;
         if (!$container) {
-            $eContainers = \Yii::$app->getModule('D3Pop3')->EmailContainers;
+            $eContainers = Yii::$app->getModule('D3Pop3')->EmailContainers;
         } else {
             $eContainers = [$container];
         }
@@ -29,7 +35,7 @@ class D3Pop3Controller extends Controller {
             $this->stdOutLine('Container class:' . $containerClass);
             if (!class_exists($containerClass)) {
                 $this->stdOutLine('Can not found email container class:' . $containerClass);
-                \Yii::error('Can not found email container class:' . $containerClass);
+                Yii::error('Can not found email container class:' . $containerClass);
                 $error = true;
                 continue;
             }

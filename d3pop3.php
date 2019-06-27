@@ -3,8 +3,9 @@
 namespace d3yii2\d3pop3;
 
 use Yii;
+use yii\base\Module;
 
-class d3pop3 extends \yii\base\Module
+class d3pop3 extends Module
 {
 
     public $controllerNamespace = 'd3yii2\d3pop3\controllers';
@@ -12,6 +13,9 @@ class d3pop3 extends \yii\base\Module
     public $ConfigEmailContainerData = [];
     
     public $EmailContainers = [];
+
+    /** @var string regular expression for attachment validation */
+    public $allowedAttachmentFileExtensions = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip)$/i';
 
     public function init()
     {
