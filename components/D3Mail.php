@@ -637,13 +637,13 @@ class D3Mail
 
         $signatureModel = Email::getActiveCompanySignatureModel();
 
-        if (!empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position){
+        if ($signatureModel && !empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position){
             $form->body .= $signatureModel->signature . PHP_EOL . PHP_EOL;
         }
 
         $form->body .= $this->email->body_plain;
 
-        if (!empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position){
+        if ($signatureModel && !empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position){
             $form->body .=  PHP_EOL . PHP_EOL . $signatureModel->signature;
         }
 
