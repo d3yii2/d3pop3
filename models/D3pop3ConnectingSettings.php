@@ -71,4 +71,8 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
         return self::findOne(['email'=>$email]);
     }
 
+    public function getSettings()
+    {
+        return json_decode($this->settings, true);
+    }
 }
