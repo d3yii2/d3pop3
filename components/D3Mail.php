@@ -63,6 +63,8 @@ class D3Mail
 
     /** @var array */
     private $attachmentList = [];
+    /** @var array */
+    private $attachmentContentList = [];
 
     /**
      * @var string
@@ -305,6 +307,17 @@ class D3Mail
         return $this;
     }
 
+    public function addAttachmentContent($fileName, $content, $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i')
+    {
+        $this->attachmentContentList[] = [
+            'fileName' => $fileName,
+            'content' => $content,
+            'fileTypes' => $fileTypes,
+        ];
+
+        return $this;
+    }
+
     public function save()
     {
         if(!$this->email) {
@@ -358,6 +371,19 @@ class D3Mail
                 D3pop3Email::class,
                 $this->email->id,
                 $attachment['filePath'],
+                $attachment['fileTypes']
+            );
+        }
+        foreach ($this->attachmentContentList as $attachment) {
+            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
+            if(!preg_match($attachment['fileTypes'],$ext)){
+                continue;
+            }
+            D3files::saveContent(
+                $attachment['fileName'],
+                D3pop3Email::class,
+                $this->email->id,
+                $attachment['content'],
                 $attachment['fileTypes']
             );
         }
