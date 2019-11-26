@@ -13,6 +13,7 @@ use d3yii2\d3pop3\models\D3pPerson;
 use d3yii2\d3pop3\models\TypeSmtpForm;
 use Html2Text\Html2Text;
 use Html2Text\Html2TextException;
+use yii\swiftmailer\Message;
 use function strlen;
 use Yii;
 use yii\db\ActiveRecord;
@@ -243,6 +244,21 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
+    public function addAddressBcc(string $email, $name = null): self
+    {
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this
+     */
     public function addAddressReply(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
@@ -392,9 +408,9 @@ class D3Mail
     }
 
     /**
-     * @return int
+     * @return string|null
      */
-    public function getEmailId(): int
+    public function getEmailId(): ?string
     {
         return $this->email->id;
     }
@@ -406,76 +422,89 @@ class D3Mail
 
     public function send(): bool
     {
-        /**
-         * Set the custom SMTP connection if exists for this mailbox
-         */
-        $settingEmailContainer = new SettingEmailContainer();
-        if($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
-            $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
+        try {
+            /**
+             * Set the custom SMTP connection if exists for this mailbox
+             */
+            $settingEmailContainer = new SettingEmailContainer();
+            if ($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
+                $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
 
-            if ($smtpConfig) {
+                if ($smtpConfig) {
 
-                $tranportConfig = [
-                    'class' => 'Swift_SmtpTransport',
-                    'host' => $smtpConfig['host'],
-                    'port' => $smtpConfig['port'],
-                ];
+                    $tranportConfig = [
+                        'class' => 'Swift_SmtpTransport',
+                        'host' => $smtpConfig['host'],
+                        'port' => $smtpConfig['port'],
+                    ];
 
-                if (!empty($smtpConfig['user'])) {
-                    $tranportConfig['username'] = $smtpConfig['user'];
+                    if (!empty($smtpConfig['user'])) {
+                        $tranportConfig['username'] = $smtpConfig['user'];
+                    }
+
+                    if (!empty($smtpConfig['password'])) {
+                        $tranportConfig['password'] = $smtpConfig['password'];
+                    }
+
+                    if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
+                        $tranportConfig['encryption'] = $smtpConfig['ssl'];
+
+                        //@FIXME - should be self signed certificates supported?
+                        //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                    }
+
+                    Yii::$app->mailer->setTransport($tranportConfig);
+                }
+            }
+
+            try {
+
+                /** @var Message $message */
+                $message = Yii::$app->mailer->compose()
+                    ->setFrom($this->email->from)
+                    ->setSubject($this->email->subject);
+                if ($this->email->body_plain) {
+                    $message->setTextBody($this->email->body_plain);
+                }
+                if ($this->email->body) {
+                    $message->setHtmlBody($this->email->body);
                 }
 
-                if (!empty($smtpConfig['password'])) {
-                    $tranportConfig['password'] = $smtpConfig['password'];
+                /** @var D3pop3EmailAddress $address */
+                foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
+                    switch ($address->address_type) {
+                        case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
+                            $message->setReplyTo($address->fullAddress());
+                            break;
+                        case D3pop3EmailAddress::ADDRESS_TYPE_CC:
+                            $message->setCc($address->fullAddress());
+                            break;
+                        case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
+                            $message->setBcc($address->fullAddress());
+                            break;
+                        default:
+                            $message->setTo($address->fullAddress());
+                    }
                 }
 
-                if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
-                    $tranportConfig['encryption'] = $smtpConfig['ssl'];
+                try {
+                    foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
+                        $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
+                    }
 
-                    //@FIXME - should be self signed certificates supported?
-                    //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                    return $message->send();
+                } catch (\Exception $e) {
+                    $err = 'Send exception message: ' . $e->getMessage();
+                    $err .= isset($tranportConfig)
+                        ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
+                        : 'Can not send by default mailer.';
+                    Yii::error($err);
                 }
-
-                Yii::$app->mailer->setTransport($tranportConfig);
+            } catch (\Exception $e) {
+                Yii::error('Cannot set the mail attributes in mailer');
             }
-        }
-        $message = Yii::$app->mailer->compose()
-            ->setFrom($this->email->from)
-            ->setSubject($this->email->subject);
-        if($this->email->body_plain) {
-            $message->setTextBody($this->email->body_plain);
-        }
-        if($this->email->body) {
-            $message->setHtmlBody($this->email->body);
-        }
-        /** @var D3pop3EmailAddress $address */
-        foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
-            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
-                $message->setTo($address->fullAddress());
-            } elseif ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY) {
-                $message->setReplyTo($address->fullAddress());
-            } elseif ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_CC) {
-                $message->setCc($address->fullAddress());
-            }
-        }
-
-        foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
-            $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
-        }
-
-        try{
-            return $message->send();
-        }catch (\Exception $e){
-            Yii::error('Send exception message: ' . $e->getMessage());
-            if(isset($tranportConfig)) {
-
-                Yii::error('Can not send email. '
-                    . VarDumper::dumpAsString($tranportConfig)
-                );
-            }else{
-                Yii::error('Can not send by default mailer.');
-            }
-            throw $e;
+        } catch (\Exception $e) {
+            Yii::error('Cannot set the custom SMTP connection');
         }
     }
 
@@ -654,7 +683,10 @@ class D3Mail
         $form->from_name = $this->email->from_name;
 
         $toAdreses = $this->getToAdreses();
-        $form->to[] =  $toAdreses[0]->email_address ?? '';
+
+        if (!empty($toAdreses[0]->email_address)) {
+            $form->to[] = $toAdreses[0]->email_address ?? '';
+        }
         $form->to_name = isset($toAdreses[0]->name)
             ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
             : '';
@@ -690,10 +722,9 @@ class D3Mail
         ->setSubject($form->subject)
         ->setBodyPlain($form->body);
 
-        $this->setRecipients($form, 'to', 'To');
-        $this->setRecipients($form, 'cc', 'Cc');
-        //@TODO - jāpieliek tabulā & migrācija
-        //$this->setRecipients($form, 'bcc', 'Bcc');
+        $this->setRecipients($form, 'to', D3pop3EmailAddress::ADDRESS_TYPE_TO);
+        $this->setRecipients($form, 'cc', D3pop3EmailAddress::ADDRESS_TYPE_CC);
+        $this->setRecipients($form, 'bcc', D3pop3EmailAddress::ADDRESS_TYPE_BCC);
 
         return true;
     }
@@ -735,7 +766,19 @@ class D3Mail
         }
 
         foreach ($emails as $email) {
-            $this->addAddressTo($email, $email);
+            switch ($type) {
+                case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
+                    $this->addAddressReply($email, $email);
+                    break;
+                case D3pop3EmailAddress::ADDRESS_TYPE_CC:
+                    $this->addAddressCc($email, $email);
+                    break;
+                case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
+                    $this->addAddressBcc($email, $email);
+                    break;
+                default:
+                    $this->addAddressTo($email, $email);
+            }
         }
     }
 }
