@@ -12,7 +12,7 @@ use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
 use d3yii2\d3pop3\models\TypeSmtpForm;
-use ea\app\Yii;
+use Yii;
 use eaBlankonThema\components\FlashHelper;
 use Html2Text\Html2Text;
 use Html2Text\Html2TextException;
@@ -79,6 +79,7 @@ class D3Mail
      */
     private $email_container_id;
 
+    private const EMPTY_NAME = '';
 
     /**
      * @param string $emailDatetime
@@ -229,10 +230,14 @@ class D3Mail
     /**
      * @param string $email
      * @param string|null $name
-     * @return $this
+     * @return $this|null
      */
-    public function addAddressCc(string $email, $name = null): self
+    public function addAddressCc(string $email, $name = null): ?self
     {
+        if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
+            return null;
+        }
+
         $address = new D3pop3EmailAddress();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
         $address->email_address = $email;
@@ -244,10 +249,15 @@ class D3Mail
     /**
      * @param string $email
      * @param string|null $name
-     * @return $this
+     * @return $this|null
      */
-    public function addAddressBcc(string $email, $name = null): self
+    public function addAddressBcc(string $email, $name = null): ?self
     {
+        if ($this->existsInAddressList($email,
+            [D3pop3EmailAddress::ADDRESS_TYPE_TO, D3pop3EmailAddress::ADDRESS_TYPE_CC])) {
+            return null;
+        }
+
         $address = new D3pop3EmailAddress();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
         $address->email_address = $email;
@@ -836,7 +846,7 @@ class D3Mail
         $emails = [];
 
         foreach ($form->$attr as $i => $target) {
-            if (!is_numeric($target)) {
+            if (!is_numeric($target) && !in_array($target, $emails, true)) {
                 $emails[] = $target;
                 continue;
             }
@@ -863,16 +873,16 @@ class D3Mail
         foreach ($emails as $email) {
             switch ($type) {
                 case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
-                    $this->addAddressReply($email, $email);
+                    $this->addAddressReply($email, self::EMPTY_NAME);
                     break;
                 case D3pop3EmailAddress::ADDRESS_TYPE_CC:
-                    $this->addAddressCc($email, $email);
+                    $this->addAddressCc($email, self::EMPTY_NAME);
                     break;
                 case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
-                    $this->addAddressBcc($email, $email);
+                    $this->addAddressBcc($email, self::EMPTY_NAME);
                     break;
                 default:
-                    $this->addAddressTo($email, $email);
+                    $this->addAddressTo($email, self::EMPTY_NAME);
             }
         }
     }
