@@ -289,7 +289,7 @@ class D3Mail
     private function existsInAddressList(string $email, array $types): bool
     {
         foreach ($this->addressList as $item) {
-            if ($item->name === $email && in_array($item->address_type, $types, true)) {
+            if ($item->email_address === $email && in_array($item->address_type, $types, true)) {
                 return true;
             }
         }
@@ -794,7 +794,7 @@ class D3Mail
         }
         $form->to_name = isset($toAdreses[0]->name)
             ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
-            : '';
+            : self::EMPTY_NAME;
 
         $form->subject = $this->email->subject;
 
