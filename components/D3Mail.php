@@ -12,12 +12,14 @@ use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
 use d3yii2\d3pop3\models\TypeSmtpForm;
-use Yii;
 use eaBlankonThema\components\FlashHelper;
 use Html2Text\Html2Text;
 use Html2Text\Html2TextException;
+use ReflectionException;
+use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
+use yii\db\Exception as DbException;
 use yii\helpers\VarDumper;
 use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
@@ -26,60 +28,53 @@ use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
+
+use function get_class;
+use function in_array;
+use function is_array;
 use function strlen;
 
+/**
+ * Class D3Mail
+ * @package d3yii2\d3pop3\components
+ */
 class D3Mail
 {
+    private const EMPTY_NAME = '';
     /** @var D3pop3Email */
     private $email;
-
     /** @var string */
     private $emailId;
-
     /** @var string */
     private $subject;
-
     /** @var string */
     private $bodyPlain;
-
     /** @var string */
     private $bodyHtml;
-
     /** @var string */
     private $emailDatetime;
-
     private $from_name;
-
     private $from_email;
-
     /** @var int */
     private $from_user_id;
-
     /** @var D3pop3EmailAddress[] */
     private $addressList = [];
-
     /** @var array D3pop3SendReceiv[] */
     private $sendReceiveList = [];
-
     /** @var array  D3pop3EmailModel */
     private $emailModelList = [];
-
     /** @var array */
     private $attachmentList = [];
     /** @var array */
     private $attachmentContentList = [];
-
     /**
      * @var string
      */
     private $email_container_class;
-
     /**
      * @var int
      */
     private $email_container_id;
-
-    private const EMPTY_NAME = '';
 
     /**
      * @param string $emailDatetime
@@ -129,66 +124,12 @@ class D3Mail
     }
 
     /**
-     * @param array|string $emailId
-     * @return $this
-     */
-    public function setEmailId($emailId): self
-    {
-        if (is_array($emailId)) {
-            $this->emailId = implode('-', $emailId);
-        } else {
-            $this->emailId = $emailId;
-        }
-        return $this;
-    }
-
-    /**
-     * @param string $subject
-     * @return $this
-     */
-    public function setSubject(string $subject): self
-    {
-        $this->subject = $subject;
-        return $this;
-    }
-
-    /**
-     * @param string $bodyPlain
-     * @return $this
-     */
-    public function setBodyPlain($bodyPlain): self
-    {
-        $this->bodyPlain = $bodyPlain;
-        return $this;
-    }
-
-    /**
      * @param string $bodyHtml
      * @return D3Mail
      */
     public function setBodyHtml($bodyHtml): self
     {
         $this->bodyHtml = $bodyHtml;
-        return $this;
-    }
-
-    /**
-     * @param mixed $from_name
-     * @return $this
-     */
-    public function setFromName($from_name): self
-    {
-        $this->from_name = $from_name;
-        return $this;
-    }
-
-    /**
-     * @param mixed $from_email
-     * @return $this
-     */
-    public function setFromEmail($from_email): self
-    {
-        $this->from_email = $from_email;
         return $this;
     }
 
@@ -209,120 +150,6 @@ class D3Mail
         if ($person = $user->getD3pPeople()->one()) {
             $this->from_name = $person->getFullName();
         }
-        return $this;
-    }
-
-    /**
-     * @param string $email
-     * @param string|null $name
-     * @return $this
-     */
-    public function addAddressTo(string $email, $name = null): self
-    {
-        $address = new D3pop3EmailAddress();
-        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_TO;
-        $address->email_address = $email;
-        $address->name = $name;
-        $this->addressList[] = $address;
-        return $this;
-    }
-
-    /**
-     * @param string $email
-     * @param string|null $name
-     * @return $this|null
-     */
-    public function addAddressCc(string $email, $name = null): ?self
-    {
-        if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
-            return null;
-        }
-
-        $address = new D3pop3EmailAddress();
-        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
-        $address->email_address = $email;
-        $address->name = $name;
-        $this->addressList[] = $address;
-        return $this;
-    }
-
-    /**
-     * @param string $email
-     * @param string|null $name
-     * @return $this|null
-     */
-    public function addAddressBcc(string $email, $name = null): ?self
-    {
-        if ($this->existsInAddressList($email,
-            [D3pop3EmailAddress::ADDRESS_TYPE_TO, D3pop3EmailAddress::ADDRESS_TYPE_CC])) {
-            return null;
-        }
-
-        $address = new D3pop3EmailAddress();
-        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
-        $address->email_address = $email;
-        $address->name = $name;
-        $this->addressList[] = $address;
-        return $this;
-    }
-
-    /**
-     * @param string $email
-     * @param string|null $name
-     * @return $this
-     */
-    public function addAddressReply(string $email, $name = null): self
-    {
-        $address = new D3pop3EmailAddress();
-        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
-        $address->email_address = $email;
-        $address->name = $name;
-        $this->addressList[] = $address;
-        return $this;
-    }
-
-    /**
-     * @param string $email
-     * @param array $types
-     * @return bool
-     */
-    private function existsInAddressList(string $email, array $types): bool
-    {
-        foreach ($this->addressList as $item) {
-            if ($item->email_address === $email && in_array($item->address_type, $types, true)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @return $this
-     */
-    private function clearAddressTo(): self
-    {
-        $this->addressList = [];
-        return $this;
-    }
-
-    /**
-     * @param int $companyId
-     * @param string $status
-     * @return $this
-     * @throws \yii\db\Exception
-     */
-    public function addSendReceiveOutFromCompany(
-        int $companyId = 0,
-        string $status = D3pop3SendReceiv::STATUS_NEW
-    ): self {
-        if (!$companyId) {
-            $companyId = Yii::$app->SysCmp->getActiveCompanyId();
-        }
-        $sendReceiv = new D3pop3SendReceiv();
-        $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
-        $sendReceiv->company_id = $companyId;
-        $sendReceiv->status = $status;
-        $this->sendReceiveList[] = $sendReceiv;
         return $this;
     }
 
@@ -365,11 +192,7 @@ class D3Mail
         $filePath,
         $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
     ): self {
-        $this->attachmentList[] = [
-            'fileName' => $fileName,
-            'filePath' => $filePath,
-            'fileTypes' => $fileTypes,
-        ];
+        $this->attachmentList[] = compact('fileName', 'filePath', 'fileTypes');
 
         return $this;
     }
@@ -385,12 +208,332 @@ class D3Mail
         $content,
         $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
     ): self {
-        $this->attachmentContentList[] = [
-            'fileName' => $fileName,
-            'content' => $content,
-            'fileTypes' => $fileTypes,
-        ];
+        $this->attachmentContentList[] = compact('fileName', 'content', 'fileTypes');
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEmailId(): ?string
+    {
+        return $this->email->id;
+    }
+
+    /**
+     * @param array|string $emailId
+     * @return $this
+     */
+    public function setEmailId($emailId): self
+    {
+        if (is_array($emailId)) {
+            $this->emailId = implode('-', $emailId);
+        } else {
+            $this->emailId = $emailId;
+        }
+        return $this;
+    }
+
+    /**
+     * @return array
+     * @throws ReflectionException
+     * @throws DbException
+     */
+    public function getAttachments(): ?array
+    {
+        try {
+            return D3files::getRecordFilesList(D3pop3Email::class, $this->email->id);
+        } catch (ForbiddenHttpException $e) {
+            FlashHelper::addDanger(Yii::t('d3system', 'Unexpected Server Error'));
+        }
+        return [];
+    }
+
+    /**
+     * @return bool
+     */
+    public function send(): bool
+    {
+        try {
+            /**
+             * Set the custom SMTP connection if exists for this mailbox
+             */
+            $settingEmailContainer = new SettingEmailContainer();
+            if ($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
+                $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
+
+                if ($smtpConfig) {
+                    $tranportConfig = [
+                        'class' => 'Swift_SmtpTransport',
+                        'host' => $smtpConfig['host'],
+                        'port' => $smtpConfig['port'],
+                    ];
+
+                    if (!empty($smtpConfig['user'])) {
+                        $tranportConfig['username'] = $smtpConfig['user'];
+                    }
+
+                    if (!empty($smtpConfig['password'])) {
+                        $tranportConfig['password'] = $smtpConfig['password'];
+                    }
+
+                    if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
+                        $tranportConfig['encryption'] = $smtpConfig['ssl'];
+
+                        //@FIXME - should be self signed certificates supported?
+                        //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                    }
+
+                    Yii::$app->mailer->setTransport($tranportConfig);
+                }
+            }
+
+            try {
+                /** @var Message $message */
+                $message = Yii::$app->mailer->compose()
+                    ->setFrom($this->email->from)
+                    ->setSubject($this->email->subject);
+                if ($this->email->body_plain) {
+                    $message->setTextBody($this->email->body_plain);
+                }
+                if ($this->email->body) {
+                    $message->setHtmlBody($this->email->body);
+                }
+
+                /** @var D3pop3EmailAddress $address */
+                foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
+                    switch ($address->address_type) {
+                        case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
+                            $message->setReplyTo($address->fullAddress());
+                            break;
+                        case D3pop3EmailAddress::ADDRESS_TYPE_CC:
+                            $message->setCc($address->fullAddress());
+                            break;
+                        case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
+                            $message->setBcc($address->fullAddress());
+                            break;
+                        default:
+                            $message->setTo($address->fullAddress());
+                    }
+                }
+
+                try {
+                    foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
+                        $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
+                    }
+
+                    return $message->send();
+                } catch (\Exception $e) {
+                    $err = 'Send exception message: ' . $e->getMessage();
+                    $err .= isset($tranportConfig)
+                        ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
+                        : 'Can not send by default mailer.';
+                    Yii::error($err);
+                }
+            } catch (\Exception $e) {
+                Yii::error('Cannot set the mail attributes in mailer');
+            }
+        } catch (\Exception $e) {
+            Yii::error('Cannot set the custom SMTP connection');
+        }
+        return null;
+    }
+
+    /**
+     * @param string $createdBy
+     * @throws DbException
+     */
+    public function init(string $createdBy): void
+    {
+        $fromList = ConnectingSettingsDict::getFromList();
+        reset($fromList);
+        $email = key($fromList);
+        $this
+            ->setEmailId([
+                $createdBy,
+                Yii::$app->SysCmp->getActiveCompanyId(),
+                Yii::$app->user->getId(),
+                date('YmdHis'),
+            ])
+            ->setFromEmail($email)
+            ->setFromName($fromList[$email])
+            ->addSendReceiveOutFromCompany();
+    }
+
+    /**
+     * @param int $companyId
+     * @param string $status
+     * @return $this
+     * @throws DbException
+     */
+    public function addSendReceiveOutFromCompany(
+        int $companyId = 0,
+        string $status = D3pop3SendReceiv::STATUS_NEW
+    ): self {
+        if (!$companyId) {
+            $companyId = Yii::$app->SysCmp->getActiveCompanyId();
+        }
+        $sendReceiv = new D3pop3SendReceiv();
+        $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
+        $sendReceiv->company_id = $companyId;
+        $sendReceiv->status = $status;
+        $this->sendReceiveList[] = $sendReceiv;
+        return $this;
+    }
+
+    /**
+     * @param mixed $from_name
+     * @return $this
+     */
+    public function setFromName($from_name): self
+    {
+        $this->from_name = $from_name;
+        return $this;
+    }
+
+    /**
+     * @param mixed $from_email
+     * @return $this
+     */
+    public function setFromEmail($from_email): self
+    {
+        $this->from_email = $from_email;
+        return $this;
+    }
+
+    /**
+     * Nosūta no tā paša epasta, uz kuru saņemts. Mekle pēc setting id
+     *
+     * @return D3Mail
+     * @throws Exception
+     * @throws Html2TextException
+     * @throws \Exception
+     */
+    public function createReply(): self
+    {
+        /** @var D3pop3ConnectingSettings $settings */
+        $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
+
+        if (empty($settings->email)) {
+            throw new Exception(Yii::t('d3pop3', 'Please set email in My Company Email Settings'));
+        }
+
+
+        $replyD3Mail = new self();
+
+        $replyD3Mail->setEmailId([
+            'REPLY',
+            Yii::$app->SysCmp->getActiveCompanyId(),
+            'MAIL',
+            $this->email->id,
+            date('YmdHis'),
+        ])
+            ->setSubject('RE: ' . $this->email->subject)
+            ->setBodyPlain('> ' . str_replace("\n", "\n> ", $this->getPlainBody()))
+            ->setFromEmail($settings->email)
+            ->setFromName(Yii::$app->person->firstName . ' ' . Yii::$app->person->lastName)
+            ->addSendReceiveOutFromCompany(0, \d3yii2\d3pop3\models\base\D3pop3SendReceiv::STATUS_DRAFT);
+
+        if ($replyAddreses = $this->getReplyAddreses()) {
+            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
+        } else {
+            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
+        }
+        try {
+            $replyD3Mail->save();
+        } catch (\Exception $e) {
+        }
+
+        return $replyD3Mail;
+    }
+
+    /**
+     * @param string $bodyPlain
+     * @return $this
+     */
+    public function setBodyPlain($bodyPlain): self
+    {
+        $this->bodyPlain = $bodyPlain;
+        return $this;
+    }
+
+    /**
+     * @param string $subject
+     * @return $this
+     */
+    public function setSubject(string $subject): self
+    {
+        $this->subject = $subject;
+        return $this;
+    }
+
+    /**
+     * ja nav plain body, konvertee HTML body
+     * @return string
+     * @throws Html2TextException
+     */
+    private function getPlainBody(): string
+    {
+        if (!$this->email->body) {
+            return $this->email->body_plain;
+        }
+
+        $convertedBody = Html2Text::convert($this->email->body, true);
+        if (!$this->email->body_plain) {
+            return $convertedBody;
+        }
+
+        /**
+         * apstraadaa gafdiijumu, ja plain body ir piemeeram "An HTML viewer is required to see this message"
+         */
+        if (strlen($convertedBody) > 3 * strlen($this->email->body_plain)) {
+            return $convertedBody;
+        }
+        return $this->email->body_plain;
+    }
+
+    /**
+     * @return D3pop3EmailAddress[]
+     */
+    public function getReplyAddreses(): array
+    {
+        /** @var D3pop3EmailAddress[] $list */
+        $list = [];
+        /** @var D3pop3EmailAddress $address */
+        foreach ($this->getEmailAddress() as $address) {
+            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY) {
+                $list[] = $address;
+            }
+        }
+
+        return $list;
+    }
+
+    /**
+     * @return array|D3pop3EmailAddress[]
+     */
+    private function getEmailAddress(): array
+    {
+        if (!$this->addressList) {
+            $this->addressList = $this->email->getD3pop3EmailAddresses()->all();
+        }
+
+        return $this->addressList;
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this
+     */
+    public function addAddressTo(string $email, $name = null): self
+    {
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_TO;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
         return $this;
     }
 
@@ -404,7 +547,6 @@ class D3Mail
         }
 
         try {
-
             $this->email->email_datetime = $this->emailDatetime ?? date('Y-m-d H:i:s');
             $this->email->receive_datetime = date('Y-m-d H:i:s');
             $this->email->email_id = $this->emailId;
@@ -468,267 +610,12 @@ class D3Mail
                 );
             }
         } catch (D3ActiveRecordException $e) {
+            Yii::error($e->getMessage());
             FlashHelper::addDanger(Yii::t('d3emails', 'Can not send email!'));
         } catch (Exception $e) {
+            Yii::error($e->getMessage());
             FlashHelper::addDanger(Yii::t('d3emails', 'Can not send email!'));
         }
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getEmailId(): ?string
-    {
-        return $this->email->id;
-    }
-
-    /**
-     * @return array
-     */
-    public function getAttachments(): ?array
-    {
-        try {
-            return D3files::getRecordFilesList(D3pop3Email::class, $this->email->id);
-        } catch (ForbiddenHttpException $e) {
-            FlashHelper::addDanger(Yii::t('d3system', 'Unexpected Server Error'));
-        }
-        return [];
-    }
-
-    /**
-     * @return bool
-     */
-    public function send(): bool
-    {
-        try {
-            /**
-             * Set the custom SMTP connection if exists for this mailbox
-             */
-            $settingEmailContainer = new SettingEmailContainer();
-            if ($settingEmailContainer->fetchEmailSmtpData($this->from_email)) {
-                $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
-
-                if ($smtpConfig) {
-
-                    $tranportConfig = [
-                        'class' => 'Swift_SmtpTransport',
-                        'host' => $smtpConfig['host'],
-                        'port' => $smtpConfig['port'],
-                    ];
-
-                    if (!empty($smtpConfig['user'])) {
-                        $tranportConfig['username'] = $smtpConfig['user'];
-                    }
-
-                    if (!empty($smtpConfig['password'])) {
-                        $tranportConfig['password'] = $smtpConfig['password'];
-                    }
-
-                    if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
-                        $tranportConfig['encryption'] = $smtpConfig['ssl'];
-
-                        //@FIXME - should be self signed certificates supported?
-                        //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
-                    }
-
-                    Yii::$app->mailer->setTransport($tranportConfig);
-                }
-            }
-
-            try {
-
-                /** @var Message $message */
-                $message = Yii::$app->mailer->compose()
-                    ->setFrom($this->email->from)
-                    ->setSubject($this->email->subject);
-                if ($this->email->body_plain) {
-                    $message->setTextBody($this->email->body_plain);
-                }
-                if ($this->email->body) {
-                    $message->setHtmlBody($this->email->body);
-                }
-
-                /** @var D3pop3EmailAddress $address */
-                foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
-                    switch ($address->address_type) {
-                        case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
-                            $message->setReplyTo($address->fullAddress());
-                            break;
-                        case D3pop3EmailAddress::ADDRESS_TYPE_CC:
-                            $message->setCc($address->fullAddress());
-                            break;
-                        case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
-                            $message->setBcc($address->fullAddress());
-                            break;
-                        default:
-                            $message->setTo($address->fullAddress());
-                    }
-                }
-
-                try {
-                    foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
-                        $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
-                    }
-
-                    return $message->send();
-                } catch (\Exception $e) {
-                    $err = 'Send exception message: ' . $e->getMessage();
-                    $err .= isset($tranportConfig)
-                        ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
-                        : 'Can not send by default mailer.';
-                    Yii::error($err);
-                }
-            } catch (\Exception $e) {
-                Yii::error('Cannot set the mail attributes in mailer');
-            }
-        } catch (\Exception $e) {
-            Yii::error('Cannot set the custom SMTP connection');
-        }
-        return null;
-    }
-
-    /**
-     * @return array|D3pop3EmailAddress[]
-     */
-    private function getEmailAddress(): array
-    {
-        if (!$this->addressList) {
-            $this->addressList = $this->email->getD3pop3EmailAddresses()->all();
-        }
-
-        return $this->addressList;
-    }
-
-    /**
-     * @return array|D3pop3EmailAddress[]
-     */
-    public function getToAdreses(): array
-    {
-        /** @var D3pop3EmailAddress[] $list */
-        $list = [];
-        /** @var D3pop3EmailAddress $address */
-        foreach ($this->getEmailAddress() as $address) {
-            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
-                $list[] = $address;
-            }
-        }
-
-        return $list;
-    }
-
-    /**
-     * @return D3pop3EmailAddress[]
-     */
-    public function getReplyAddreses(): array
-    {
-
-        /** @var D3pop3EmailAddress[] $list */
-        $list = [];
-        /** @var D3pop3EmailAddress $address */
-        foreach ($this->getEmailAddress() as $address) {
-            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY) {
-                $list[] = $address;
-            }
-        }
-
-        return $list;
-    }
-
-
-    /**
-     * ja nav plain body, konvertee HTML body
-     * @return string
-     * @throws Html2TextException
-     */
-    private function getPlainBody(): string
-    {
-        if (!$this->email->body) {
-            return $this->email->body_plain;
-        }
-
-        $convertedBody = Html2Text::convert($this->email->body, true);
-        if (!$this->email->body_plain) {
-            return $convertedBody;
-        }
-
-        /**
-         * apstraadaa gafdiijumu, ja plain body ir piemeeram "An HTML viewer is required to see this message"
-         */
-        if (strlen($convertedBody) > 3 * strlen($this->email->body_plain)) {
-            return $convertedBody;
-        }
-        return $this->email->body_plain;
-    }
-
-    /**
-     * @param string $createdBy
-     * @throws \yii\db\Exception
-     */
-    public function init(string $createdBy): void
-    {
-        $fromList = ConnectingSettingsDict::getFromList();
-        reset($fromList);
-        $email = key($fromList);
-        $this
-            ->setEmailId([
-                $createdBy,
-                Yii::$app->SysCmp->getActiveCompanyId(),
-                Yii::$app->user->getId(),
-                date('YmdHis')
-            ])
-            ->setFromEmail($email)
-            ->setFromName($fromList[$email])
-            ->addSendReceiveOutFromCompany();
-    }
-
-
-    /**
-     * Nosūta no tā paša epasta, uz kuru saņemts. Mekle pēc setting id
-     *
-     * @return D3Mail
-     * @throws Exception
-     * @throws Html2TextException
-     * @throws \Exception
-     */
-    public function createReply(): self
-    {
-
-        /** @var D3pop3ConnectingSettings $settings */
-        $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
-
-        if (empty($settings->email)) {
-            throw new Exception(Yii::t('d3pop3', 'Please set email in My Company Email Settings'));
-        }
-
-
-        $replyD3Mail = new self();
-
-        $replyD3Mail->setEmailId([
-            'REPLY',
-            Yii::$app->SysCmp->getActiveCompanyId(),
-            'MAIL',
-            $this->email->id,
-            date('YmdHis')
-        ])
-            ->setSubject('RE: ' . $this->email->subject)
-            ->setBodyPlain('> ' . str_replace("\n", "\n> ", $this->getPlainBody()))
-            ->setFromEmail($settings->email)
-            ->setFromName(Yii::$app->person->firstName . ' ' . Yii::$app->person->lastName)
-            ->addSendReceiveOutFromCompany(0, \d3yii2\d3pop3\models\base\D3pop3SendReceiv::STATUS_DRAFT);
-
-        if ($replyAddreses = $this->getReplyAddreses()) {
-            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
-
-        } else {
-            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
-        }
-        try {
-            $replyD3Mail->save();
-        } catch (\Exception $e) {
-        }
-
-        return $replyD3Mail;
-
     }
 
     /**
@@ -739,7 +626,6 @@ class D3Mail
      */
     public function createComposed(): self
     {
-
         /** @var D3pop3ConnectingSettings $settings */
         $settings = D3pop3ConnectingSettings::findOne($this->email->email_container_id);
 
@@ -754,7 +640,7 @@ class D3Mail
             Yii::$app->SysCmp->getActiveCompanyId(),
             'MAIL',
             $this->email->id,
-            date('YmdHis')
+            date('YmdHis'),
         ])
             ->setSubject($this->email->subject)
             ->setBodyPlain('> ' . str_replace("\n", "\n> ", $this->getPlainBody()))
@@ -764,18 +650,15 @@ class D3Mail
 
         if ($replyAddreses = $this->getReplyAddreses()) {
             $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
-
         } else {
             $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
         }
         try {
             $replyD3Mail->save();
         } catch (\Exception $e) {
-
         }
 
         return $replyD3Mail;
-
     }
 
     /**
@@ -800,18 +683,40 @@ class D3Mail
 
         $signatureModel = Email::getActiveCompanySignatureModel();
 
-        if ($signatureModel && !empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position) {
+        if ($signatureModel
+            && !empty($signatureModel->signature)
+            && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position
+        ) {
             $form->body .= $signatureModel->signature . PHP_EOL . PHP_EOL;
         }
 
         $form->body .= $this->email->body_plain;
 
-        if ($signatureModel && !empty($signatureModel->signature) && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position) {
+        if ($signatureModel
+            && !empty($signatureModel->signature)
+            && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position
+        ) {
             $form->body .= PHP_EOL . PHP_EOL . $signatureModel->signature;
         }
 
         return $form;
+    }
 
+    /**
+     * @return array|D3pop3EmailAddress[]
+     */
+    public function getToAdreses(): array
+    {
+        /** @var D3pop3EmailAddress[] $list */
+        $list = [];
+        /** @var D3pop3EmailAddress $address */
+        foreach ($this->getEmailAddress() as $address) {
+            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
+                $list[] = $address;
+            }
+        }
+
+        return $list;
     }
 
     /**
@@ -835,6 +740,15 @@ class D3Mail
     }
 
     /**
+     * @return $this
+     */
+    private function clearAddressTo(): self
+    {
+        $this->addressList = [];
+        return $this;
+    }
+
+    /**
      * @param MailForm $form
      * @param string $attr
      * @param string $type
@@ -845,16 +759,15 @@ class D3Mail
         $contactIds = [];
         $emails = [];
 
-        foreach ($form->$attr as $i => $target) {
+        foreach ($form->{$attr} as $i => $target) {
             if (!is_numeric($target) && !in_array($target, $emails, true)) {
                 $emails[] = $target;
                 continue;
             }
-            $contactIds[] = (int) $target;
+            $contactIds[] = (int)$target;
         }
 
         if (!empty($contactIds)) {
-
             $contacts = D3pPersonContact::find()->where(['in', 'id', $contactIds])->with('person')->all();
 
             if (!$contacts) {
@@ -885,5 +798,76 @@ class D3Mail
                     $this->addAddressTo($email, self::EMPTY_NAME);
             }
         }
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this
+     */
+    public function addAddressReply(string $email, $name = null): self
+    {
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this|null
+     */
+    public function addAddressCc(string $email, $name = null): ?self
+    {
+        if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
+            return null;
+        }
+
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @param array $types
+     * @return bool
+     */
+    private function existsInAddressList(string $email, array $types): bool
+    {
+        foreach ($this->addressList as $item) {
+            if ($item->email_address === $email && in_array($item->address_type, $types, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param string $email
+     * @param string|null $name
+     * @return $this|null
+     */
+    public function addAddressBcc(string $email, $name = null): ?self
+    {
+        if ($this->existsInAddressList(
+            $email,
+            [D3pop3EmailAddress::ADDRESS_TYPE_TO, D3pop3EmailAddress::ADDRESS_TYPE_CC]
+        )) {
+            return null;
+        }
+
+        $address = new D3pop3EmailAddress();
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
+        $address->email_address = $email;
+        $address->name = $name;
+        $this->addressList[] = $address;
+        return $this;
     }
 }
