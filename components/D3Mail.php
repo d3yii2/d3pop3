@@ -322,19 +322,30 @@ class D3Mail
 
                     return $message->send();
                 } catch (\Exception $e) {
-                    $err = 'Send exception message: ' . $e->getMessage();
-                    $err .= isset($tranportConfig)
-                        ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
-                        : 'Can not send by default mailer.';
+                    $err = 'Send exception message: ' . $e->getMessage() . PHP_EOL
+                       . $e->getTraceAsString() . PHP_EOL
+                       . (
+                           isset($tranportConfig)
+                            ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
+                            : 'Can not send by default mailer.'
+                    );
                     Yii::error($err);
                     return false;
                 }
             } catch (\Exception $e) {
-                Yii::error('Cannot set the mail attributes in mailer');
+                Yii::error(
+                    'Cannot set the mail attributes in mailer.'.PHP_EOL
+                    . ' Error: ' . $e->getMessage().PHP_EOL
+                    . $e->getTraceAsString()
+                );
                 return false;
             }
         } catch (\Exception $e) {
-            Yii::error('Cannot set the custom SMTP connection');
+            Yii::error(
+                'Cannot set the custom SMTP connection'.PHP_EOL
+                . ' Error: ' . $e->getMessage().PHP_EOL
+                . $e->getTraceAsString()
+            );
             return false;
         }
     }
