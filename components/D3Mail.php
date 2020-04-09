@@ -15,7 +15,6 @@ use d3yii2\d3pop3\models\TypeSmtpForm;
 use eaBlankonThema\components\FlashHelper;
 use Html2Text\Html2Text;
 use Html2Text\Html2TextException;
-use ReflectionException;
 use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
@@ -237,8 +236,6 @@ class D3Mail
 
     /**
      * @return array
-     * @throws ReflectionException
-     * @throws DbException
      */
     public function getAttachments(): ?array
     {
@@ -330,14 +327,16 @@ class D3Mail
                         ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
                         : 'Can not send by default mailer.';
                     Yii::error($err);
+                    return false;
                 }
             } catch (\Exception $e) {
                 Yii::error('Cannot set the mail attributes in mailer');
+                return false;
             }
         } catch (\Exception $e) {
             Yii::error('Cannot set the custom SMTP connection');
+            return false;
         }
-        return null;
     }
 
     /**
@@ -370,9 +369,10 @@ class D3Mail
     public function addSendReceiveOutFromCompany(
         int $companyId = 0,
         string $status = D3pop3SendReceiv::STATUS_NEW
-    ): self {
+    ): self
+    {
         if (!$companyId) {
-            $companyId = Yii::$app->SysCmp->getActiveCompanyId();
+            $companyId = (int)Yii::$app->SysCmp->getActiveCompanyId();
         }
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_OUT;
