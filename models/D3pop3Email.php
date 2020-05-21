@@ -44,4 +44,12 @@ class D3pop3Email extends BaseD3pop3Email
         return 1;
 
     }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getD3pop3SendReceive(): \yii\db\ActiveQuery
+    {
+        return $this->hasOne(\d3yii2\d3pop3\models\D3pop3SendReceiv::className(), ['email_id' => 'id']);
+    }
 }
