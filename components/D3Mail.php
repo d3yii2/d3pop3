@@ -29,7 +29,6 @@ use yii\helpers\VarDumper;
 use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
 use yii\web\MethodNotAllowedHttpException;
-use yii2d3\d3emails\controllers\DownloadFromUrlController;
 use yii2d3\d3emails\logic\Email;
 use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
@@ -605,34 +604,6 @@ class D3Mail
                 if (!$emailModel->save()) {
                     throw new D3ActiveRecordException($emailModel);
                 }
-            }
-
-            $downloadFromUrlController = new  DownloadFromUrlController();
-            $findMaskBase = D3pop3RegexMasks::find();
-            if ($getCompanyDefinedMask = $findMaskBase
-                ->where('=', [
-                    'type' => 'auto',
-                    'sys_company_id' =>  $this->email->getD3pop3SendReceive->company_id
-                ])
-                ->one()) {
-               $getCompanyValidUrls = $downloadFromUrlController->filterValidUrls($this->email->body, $getCompanyDefinedMask->regexp);
-               foreach ($getCompanyValidUrls as $getCompanyValidUrl) {
-                   $downloadFromUrlController->store($getCompanyValidUrl,  D3pop3Email::class,$this->email->id);
-               }
-            }
-            else {
-               if ($getGlobalDefinedMask = $findMaskBase
-                   ->where(['is', 'sys_company_id', new Expression('null')])
-                   ->where('=', [
-                       'type' => 'auto',
-                   ])
-                   ->one()) {
-                   $getGlobalValidUrls = $downloadFromUrlController->filterValidUrls($this->email->body, $getGlobalDefinedMask->regexp);
-
-                   foreach ($getGlobalValidUrls as $getGlobalValidUrl) {
-                       $downloadFromUrlController->store($getGlobalValidUrl,  D3pop3Email::class, $this->email->id);
-                   }
-               }
             }
 
             foreach ($this->attachmentList as $attachment) {
