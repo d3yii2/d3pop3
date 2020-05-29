@@ -574,7 +574,10 @@ class D3Mail
     }
 
     /**
-     * @throws \Exception
+     * @throws D3ActiveRecordException
+     * @throws Exception
+     * @throws ForbiddenHttpException
+     * @throws \ReflectionException
      */
     public function save(): void
     {
@@ -582,75 +585,67 @@ class D3Mail
             $this->email = new D3pop3Email();
         }
 
-        try {
-            $this->email->email_datetime = $this->emailDatetime ?? date('Y-m-d H:i:s');
-            $this->email->receive_datetime = date('Y-m-d H:i:s');
-            $this->email->email_id = $this->emailId;
-            $this->email->subject = $this->subject;
-            $this->email->body = $this->bodyHtml;
-            $this->email->body_plain = $this->bodyPlain;
-            $this->email->from_name = $this->from_name;
-            $this->email->from = $this->from_email;
-            $this->email->from_user_id = $this->from_user_id;
-            $this->email->email_container_id = $this->email_container_id;
-            $this->email->email_container_class = $this->email_container_class;
-            if (!$this->email->save()) {
-                throw new D3ActiveRecordException($this->email);
-            }
+        $this->email->email_datetime = $this->emailDatetime ?? date('Y-m-d H:i:s');
+        $this->email->receive_datetime = date('Y-m-d H:i:s');
+        $this->email->email_id = $this->emailId;
+        $this->email->subject = $this->subject;
+        $this->email->body = $this->bodyHtml;
+        $this->email->body_plain = $this->bodyPlain;
+        $this->email->from_name = $this->from_name;
+        $this->email->from = $this->from_email;
+        $this->email->from_user_id = $this->from_user_id;
+        $this->email->email_container_id = $this->email_container_id;
+        $this->email->email_container_class = $this->email_container_class;
+        if (!$this->email->save()) {
+            throw new D3ActiveRecordException($this->email);
+        }
 
-            foreach ($this->addressList as $address) {
-                $address->email_id = $this->email->id;
-                if (!$address->save()) {
-                    throw new D3ActiveRecordException($address);
-                }
+        foreach ($this->addressList as $address) {
+            $address->email_id = $this->email->id;
+            if (!$address->save()) {
+                throw new D3ActiveRecordException($address);
             }
+        }
 
-            foreach ($this->sendReceiveList as $sendReceive) {
-                $sendReceive->email_id = $this->email->id;
-                if (!$sendReceive->save()) {
-                    throw new D3ActiveRecordException($sendReceive);
-                }
+        foreach ($this->sendReceiveList as $sendReceive) {
+            $sendReceive->email_id = $this->email->id;
+            if (!$sendReceive->save()) {
+                throw new D3ActiveRecordException($sendReceive);
             }
+        }
 
-            foreach ($this->emailModelList as $emailModel) {
-                $emailModel->email_id = $this->email->id;
-                if (!$emailModel->save()) {
-                    throw new D3ActiveRecordException($emailModel);
-                }
+        foreach ($this->emailModelList as $emailModel) {
+            $emailModel->email_id = $this->email->id;
+            if (!$emailModel->save()) {
+                throw new D3ActiveRecordException($emailModel);
             }
+        }
 
-            foreach ($this->attachmentList as $attachment) {
-                $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
-                if (!preg_match($attachment['fileTypes'], $ext)) {
-                    continue;
-                }
-                D3files::saveFile(
-                    $attachment['fileName'],
-                    D3pop3Email::class,
-                    $this->email->id,
-                    $attachment['filePath'],
-                    $attachment['fileTypes']
-                );
+        foreach ($this->attachmentList as $attachment) {
+            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
+            if (!preg_match($attachment['fileTypes'], $ext)) {
+                continue;
             }
-            foreach ($this->attachmentContentList as $attachment) {
-                $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
-                if (!preg_match($attachment['fileTypes'], $ext)) {
-                    continue;
-                }
-                D3files::saveContent(
-                    $attachment['fileName'],
-                    D3pop3Email::class,
-                    $this->email->id,
-                    $attachment['content'],
-                    $attachment['fileTypes']
-                );
+            D3files::saveFile(
+                $attachment['fileName'],
+                D3pop3Email::class,
+                $this->email->id,
+                $attachment['filePath'],
+                $attachment['fileTypes']
+            );
+        }
+        foreach ($this->attachmentContentList as $attachment) {
+            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
+            if (!preg_match($attachment['fileTypes'], $ext)) {
+                continue;
             }
-        } catch (D3ActiveRecordException $e) {
-            Yii::error($e->getMessage());
-            FlashHelper::addDanger(Yii::t('d3emails', 'Can not send email!'));
-        } catch (Exception $e) {
-            Yii::error($e->getMessage());
-            FlashHelper::addDanger(Yii::t('d3emails', 'Can not send email!'));
+            D3files::saveContent(
+                $attachment['fileName'],
+                D3pop3Email::class,
+                $this->email->id,
+                $attachment['content'],
+                $attachment['fileTypes']
+            );
         }
     }
 
