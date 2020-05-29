@@ -37,6 +37,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
     const STATUS_READ = 'Read';
     const STATUS_DELETED = 'Deleted';
     const STATUS_DRAFT = 'Draft';
+    const STATUS_SENT = 'Sent';
     public $enum_labels = false;
     /**
      * @inheritdoc
@@ -70,6 +71,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
                     self::STATUS_READ,
                     self::STATUS_DELETED,
                     self::STATUS_DRAFT,
+                    self::STATUS_SENT,
                 ]
             ]
         ];
@@ -190,6 +192,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             self::STATUS_READ => Yii::t('d3pop3', self::STATUS_READ),
             self::STATUS_DELETED => Yii::t('d3pop3', self::STATUS_DELETED),
             self::STATUS_DRAFT => Yii::t('d3pop3', self::STATUS_DRAFT),
+            self::STATUS_SENT => Yii::t('d3pop3', self::STATUS_SENT),
         ];
     }
 
