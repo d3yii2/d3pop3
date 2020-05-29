@@ -55,12 +55,13 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
     {
         return [
             [['email_id'], 'required'],
-            [['email_id', 'company_id', 'person_id', 'setting_id'], 'integer'],
+            [['email_id', 'company_id', 'to_company_id', 'person_id', 'setting_id'], 'integer'],
             [['direction', 'status'], 'string'],
             [['email_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3Email::className(), 'targetAttribute' => ['email_id' => 'id']],
             [['setting_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3ConnectingSettings::className(), 'targetAttribute' => ['setting_id' => 'id']],
             [['person_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pPerson::className(), 'targetAttribute' => ['person_id' => 'id']],
             [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3cCompany::className(), 'targetAttribute' => ['company_id' => 'id']],
+            [['to_company_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3cCompany::className(), 'targetAttribute' => ['company_id' => 'id']],
             ['direction', 'in', 'range' => [
                     self::DIRECTION_IN,
                     self::DIRECTION_OUT,
@@ -87,6 +88,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             'email_id' => Yii::t('d3pop3', 'Email'),
             'direction' => Yii::t('d3pop3', 'Direction'),
             'company_id' => Yii::t('d3pop3', 'Company'),
+            'to_company_id' => Yii::t('d3pop3', 'Receiver Company'),
             'person_id' => Yii::t('d3pop3', 'Person'),
             'setting_id' => Yii::t('d3pop3', 'Setting'),
             'status' => Yii::t('d3pop3', 'Status'),
@@ -102,6 +104,7 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
             'email_id' => Yii::t('d3pop3', 'Email'),
             'direction' => Yii::t('d3pop3', 'Direction'),
             'company_id' => Yii::t('d3pop3', 'Company'),
+            'to_company_id' => Yii::t('d3pop3', 'Company to send'),
             'person_id' => Yii::t('d3pop3', 'Person'),
             'setting_id' => Yii::t('d3pop3', 'Setting'),
             'status' => Yii::t('d3pop3', 'Status'),
@@ -138,6 +141,14 @@ abstract class D3pop3SendReceiv extends \yii\db\ActiveRecord
     public function getCompany()
     {
         return $this->hasOne(\d3yii2\d3pop3\models\D3cCompany::className(), ['id' => 'company_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getToCompany()
+    {
+        return $this->hasOne(\d3yii2\d3pop3\models\D3cCompany::className(), ['id' => 'to_company_id']);
     }
 
 
