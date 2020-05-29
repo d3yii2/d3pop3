@@ -394,6 +394,31 @@ class D3Mail
     }
 
     /**
+     * @param string $status
+     * @return $this
+     */
+    public function updateSendReceiveStatus(string $status = D3pop3SendReceiv::STATUS_SENT): self
+    {
+        $this->sendReceiveList = $this->email->d3pop3SendReceivs ?? [];
+        $this->setSendReceiveAttrs(['status' => $status]);
+        return $this;
+    }
+
+    /**
+     * @param array $attrs
+     * @return $this
+     */
+    public function setSendReceiveAttrs(array $attrs): self
+    {
+        foreach ($this->sendReceiveList as $i => $model) {
+            /** @var D3pop3SendReceiv $model */
+            $model->setAttributes($attrs);
+            $this->sendReceiveList[$i] = $model;
+        }
+        return $this;
+    }
+
+    /**
      * @param mixed $from_name
      * @return $this
      */
