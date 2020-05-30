@@ -607,12 +607,7 @@ class D3Mail
             }
         }
 
-        foreach ($this->sendReceiveList as $sendReceive) {
-            $sendReceive->email_id = $this->email->id;
-            if (!$sendReceive->save()) {
-                throw new D3ActiveRecordException($sendReceive);
-            }
-        }
+        $this->saveSendReceive();
 
         foreach ($this->emailModelList as $emailModel) {
             $emailModel->email_id = $this->email->id;
@@ -646,6 +641,19 @@ class D3Mail
                 $attachment['content'],
                 $attachment['fileTypes']
             );
+        }
+    }
+
+    /**
+     * @throws D3ActiveRecordException
+     */
+    public function saveSendReceive(): void
+    {
+        foreach ($this->sendReceiveList as $sendReceive) {
+            $sendReceive->email_id = $this->email->id;
+            if (!$sendReceive->save()) {
+                throw new D3ActiveRecordException($sendReceive);
+            }
         }
     }
 
