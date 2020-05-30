@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace d3yii2\d3pop3\components;
 
-use d3yii2\d3pop3\models\D3pop3Email;
+use d3system\models\SysCronFinalPoint;
+use d3yii2\d3files\models\D3filesModel;
+use d3yii2\d3files\models\D3filesModelName;
 use d3yii2\d3pop3\models\D3pop3RegexMasks;
-use Exception;
 use Yii;
 use yii\db\Connection;
 use yii\db\Expression;
+use yii\helpers\FileHelper;
 use yii2d3\d3emails\controllers\DownloadFromUrlController;
 
-use function dump;
+use function file_get_contents;
+use function file_put_contents;
+use function pathinfo;
+use function rename;
+use function strrpos;
+use function substr;
+use function uniqid;
+use function unlink;
+
+use const DIRECTORY_SEPARATOR;
 
 class DownloadFromUrlComponent
 {
@@ -57,69 +68,21 @@ class DownloadFromUrlComponent
             ->queryAll();
     }
 
-
     /**
-     * @param $getValidUrls
+     * @param $getRoute
+     * @param $getEmailId
      */
-    protected function iterateUrls($getValidUrls): void
+    public function storeFinalPointValue($getRoute, $getEmailId): void
     {
-        foreach ($getValidUrls as $getValidUrl) {
-            $downloadFromUrlController
-                ->store(
-                    $getValidUrl,
-                    D3pop3Email::class,
-                    $this->modelD3pop3Email->id
-                );
-        }
+        SysCronFinalPoint::saveFinalPointValue($getRoute, $getEmailId);
     }
 
     /**
-     * @param array $getModelD3pop3Email
+     * @return array|\yii\db\ActiveRecord|null
      */
-    final public function saveCompanyMask(array $getModelD3pop3Email)
+    public function getGlobalMask()
     {
-        $transaction       = $this->getConnection->beginTransaction();
-        $findRegexMaskBase = $this->modelD3pop3RegexMasks;
-
-        $i = 0;
-        try {
-            $getCompanyDefinedMask = $findRegexMaskBase
-                ->where(
-                    [
-                        'type'           => 'auto',
-                        'sys_company_id' => $getModelD3pop3Email['company_id']
-                    ]
-                )
-                ->one();
-
-            $getCompanyValidUrls = $this->downloadFromUrlController
-                ->filterValidUrls(
-                    $getModelD3pop3Email['body'],
-                    $getCompanyDefinedMask->regexp
-                );
-
-//            dump($getCompanyValidUrls);
-//            $this->iterateUrls($getCompanyValidUrls);
-            return $i++;
-        } catch (Exception $e) {
-            Yii::error($e->getMessage());
-            Yii::error($e->getTraceAsString());
-            $transaction->rollBack();
-        }
-        //        SysCronFinalPoint::saveFinalPointValue($this->getRoute(), $file_Id);
-    }
-
-
-    /**
-     * @param array $getModelD3pop3Email
-     * @return int
-     */
-    final public function saveGlobalMask(array $getModelD3pop3Email)
-    {
-        $transaction       = $this->getConnection->beginTransaction();
-        $findRegexMaskBase = $this->modelD3pop3RegexMasks;
-
-        $getGlobalDefinedMask = $findRegexMaskBase
+        return $this->modelD3pop3RegexMasks
             ->where(
                 [
                     'is',
@@ -133,31 +96,92 @@ class DownloadFromUrlComponent
                 ]
             )
             ->one();
-
-        $status = null;
-        try {
-
-            $getGlobalValidUrls = $this->downloadFromUrlController
-                ->filterValidUrls(
-                    $getModelD3pop3Email['body'],
-                    $getGlobalDefinedMask->regexp
-                );
-
-//            dump($getGlobalValidUrls);
-
-            $status = $getGlobalValidUrls;
-//            SysCronFinalPoint::saveFinalPointValue($this->getRoute(), $file_Id);
-        } catch (Exception $e) {
-            Yii::error($e->getMessage());
-            Yii::error($e->getTraceAsString());
-            $transaction->rollBack();
-
-            $status = 'bad';
-        }
-
-//        dump($status);
-
-        return $status;
     }
 
+    /**
+     * @param $getCompanyId
+     * @return array|\yii\db\ActiveRecord|null
+     */
+    public function getCompanyMask($getCompanyId)
+    {
+        return $this->modelD3pop3RegexMasks
+            ->where(
+                [
+                    'type'           => 'manual',
+                    'sys_company_id' => $getCompanyId
+                ]
+            )
+            ->one();
+    }
+
+    /**
+     * @return array
+     */
+    public function getValidUrls($getMaskRegex, $getDefinedMask): array
+    {
+        return $this->downloadFromUrlController
+            ->filterValidUrls(
+                $getMaskRegex,
+                $getDefinedMask
+            );
+    }
+
+
+    /**
+     * @param $getValidUrl
+     * @param $getValidUrlFileName
+     * @param $modelName
+     * @param $modelId
+     * @return bool
+     * @throws \yii\base\Exception
+     */
+    final public function store($getValidUrl, $getValidUrlFileName, $modelName, $modelId)
+    {
+        $getFileName = $getValidUrlFileName;
+
+        $getUploadPath = $this->getUploadDirPath($modelName);
+        FileHelper::createDirectory($getUploadPath);
+
+        $getFullPathWithFileName = $getUploadPath . '/' . $getFileName;
+
+        file_put_contents($getFullPathWithFileName, file_get_contents($getValidUrl));
+
+        $model               = new \d3yii2\d3files\models\D3files();
+        $model->file_name    = $getFileName;
+        $model->add_datetime = new Expression('NOW()');
+        $model->user_id      = 0;
+
+        if ($model->save()) {
+            $modelMN       = new D3filesModelName();
+            $model_name_id = $modelMN->getByName($modelName, true);
+
+            $modelM                = new D3filesModel();
+            $modelM->d3files_id    = $model->id;
+            $modelM->is_file       = 1;
+            $modelM->model_name_id = $model_name_id;
+            $modelM->model_id      = $modelId;
+            $modelM->save();
+
+            $getFullPathWithFileNameRenamed = $getUploadPath . '/' . $model->id . '.' . pathinfo($getFileName)['extension'];
+
+            rename($getFullPathWithFileName, $getFullPathWithFileNameRenamed);
+
+            return true;
+        } else {
+            unlink($getFullPathWithFileName);
+
+            return false;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getUploadDirPath($modelName): string
+    {
+        $pos            = strrpos($modelName, '\\');
+        $modelShortName = false === $pos ? $modelName : substr($modelName, $pos + 1);
+
+        return Yii::$app->getModule('d3files')->uploadDir . DIRECTORY_SEPARATOR . $modelShortName;
+    }
 }
