@@ -13,7 +13,6 @@ use yii\db\Expression;
 use yii\helpers\FileHelper;
 use yii2d3\d3emails\controllers\DownloadFromUrlController;
 
-use function dd;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
@@ -40,7 +39,7 @@ class DownloadFromUrlComponent implements ComponentRunInterface
     /**
      * DownloadFromUrlComponent constructor.
      */
-    final public function __construct(Connection $getConnection, $getConfig)
+    final public function __construct(Connection $getConnection)
     {
         $this->modelD3pop3RegexMasks     = D3pop3RegexMasks::find();
         $this->downloadFromUrlController = new DownloadFromUrlController();
@@ -53,58 +52,60 @@ class DownloadFromUrlComponent implements ComponentRunInterface
      */
     public function run(array $getD3pop3Email)
     {
-        $getGlobalDefinedMask = $this
-            ->getGlobalMask();
+        if ($getD3pop3Email['body'] !== null) {
+            $getGlobalDefinedMask = $this
+                ->getGlobalMask();
 
-        $getBodyUrls = $this
-            ->downloadFromUrlController
-            ->collectBodyUrls($getD3pop3Email['body']);
-
-        $getBuildBodyUrls = $this
-            ->downloadFromUrlController
-            ->iterateRawUrls($getBodyUrls);
-
-        $getRebuildBodyRawUrls = implode(PHP_EOL, $getBuildBodyUrls);
-
-        if ($getCompanyDefinedMask = $this
-            ->getCompanyMask($getD3pop3Email['company_id'])) {
-            $getCompanyValidUrls = $this
+            $getBodyUrls = $this
                 ->downloadFromUrlController
-                ->filterValidUrls($getRebuildBodyRawUrls, $getCompanyDefinedMask->regexp);
+                ->collectBodyUrls($getD3pop3Email['body']);
 
-            foreach ($getCompanyValidUrls as $getCompanyValidUrl => $getCompanyValidUrlFileName) {
-                $getResponse = $this
-                    ->store(
-                        $getCompanyValidUrl,
-                        $getCompanyValidUrlFileName,
-                        D3pop3Email::class,
-                        $getD3pop3Email['id']
-                    );
+            $getBuildBodyUrls = $this
+                ->downloadFromUrlController
+                ->iterateRawUrls($getBodyUrls);
 
-                if ($getResponse) {
-                    return 'Finishing processing company emailId: ' . $getD3pop3Email['id'];
-                } else {
-                    return 'Failed processing company emailId: ' . $getD3pop3Email['id'];
+            $getRebuildBodyRawUrls = implode(PHP_EOL, $getBuildBodyUrls);
+
+            if ($getCompanyDefinedMask = $this
+                ->getCompanyMask($getD3pop3Email['company_id'])) {
+                $getCompanyValidUrls = $this
+                    ->downloadFromUrlController
+                    ->filterValidUrls($getRebuildBodyRawUrls, $getCompanyDefinedMask->regexp);
+
+                foreach ($getCompanyValidUrls as $getCompanyValidUrl => $getCompanyValidUrlFileName) {
+                    $getResponse = $this
+                        ->store(
+                            $getCompanyValidUrl,
+                            $getCompanyValidUrlFileName,
+                            D3pop3Email::class,
+                            $getD3pop3Email['id']
+                        );
+
+                    if ($getResponse) {
+                        return 'Finishing processing company emailId: ' . $getD3pop3Email['id'];
+                    } else {
+                        return 'Failed processing company emailId: ' . $getD3pop3Email['id'];
+                    }
                 }
-            }
-        } else {
-            $getGlobalValidUrls = $this
-                ->downloadFromUrlController
-                ->filterValidUrls($getRebuildBodyRawUrls, $getGlobalDefinedMask->regexp);
+            } else {
+                $getGlobalValidUrls = $this
+                    ->downloadFromUrlController
+                    ->filterValidUrls($getRebuildBodyRawUrls, $getGlobalDefinedMask->regexp);
 
-            foreach ($getGlobalValidUrls as $getGlobalValidUrl => $getGlobalValidUrlFileName) {
-                $getResponse = $this
-                    ->store(
-                        $getGlobalValidUrl,
-                        $getGlobalValidUrlFileName,
-                        D3pop3Email::class,
-                        $getD3pop3Email['id']
-                    );
+                foreach ($getGlobalValidUrls as $getGlobalValidUrl => $getGlobalValidUrlFileName) {
+                    $getResponse = $this
+                        ->store(
+                            $getGlobalValidUrl,
+                            $getGlobalValidUrlFileName,
+                            D3pop3Email::class,
+                            $getD3pop3Email['id']
+                        );
 
-                if ($getResponse) {
-                    return 'Finishing processing global emailId: ' . $getD3pop3Email['id'];
-                } else {
-                    return 'Failed processing global emailId: ' . $getD3pop3Email['id'];
+                    if ($getResponse) {
+                        return 'Finishing processing global emailId: ' . $getD3pop3Email['id'];
+                    } else {
+                        return 'Failed processing global emailId: ' . $getD3pop3Email['id'];
+                    }
                 }
             }
         }
