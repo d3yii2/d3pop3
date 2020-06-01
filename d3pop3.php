@@ -2,19 +2,11 @@
 
 namespace d3yii2\d3pop3;
 
-use d3yii2\d3pop3\components\DownloadFromUrlComponent;
 use Yii;
 use yii\base\Module;
 
 class d3pop3 extends Module
 {
-    /**
-     * @var array
-     */
-    public $params = [
-        DownloadFromUrlComponent::class
-    ];
-
     public $controllerNamespace = 'd3yii2\d3pop3\controllers';
 
     public $ConfigEmailContainerData = [];

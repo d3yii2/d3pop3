@@ -8,10 +8,12 @@ use d3yii2\d3files\models\D3filesModel;
 use d3yii2\d3files\models\D3filesModelName;
 use d3yii2\d3pop3\models\D3pop3RegexMasks;
 use Yii;
+use yii\db\Connection;
 use yii\db\Expression;
 use yii\helpers\FileHelper;
 use yii2d3\d3emails\controllers\DownloadFromUrlController;
 
+use function dd;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
@@ -38,7 +40,7 @@ class DownloadFromUrlComponent implements ComponentRunInterface
     /**
      * DownloadFromUrlComponent constructor.
      */
-    final public function __construct()
+    final public function __construct(Connection $getConnection, $getConfig)
     {
         $this->modelD3pop3RegexMasks     = D3pop3RegexMasks::find();
         $this->downloadFromUrlController = new DownloadFromUrlController();
