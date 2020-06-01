@@ -7,7 +7,8 @@ namespace d3yii2\d3pop3\components;
 interface ComponentRunInterface
 {
     /**
-     * @return void
+     * @param array $getD3pop3Email
+     * @return mixed
      */
-    public function run(): void;
+    public function run(array $getD3pop3Email);
 }
