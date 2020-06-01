@@ -3,12 +3,16 @@
 namespace d3yii2\d3pop3\components;
 
 use d3system\exceptions\D3ActiveRecordException;
+use d3yii2\d3files\components\FileHandler;
 use d3yii2\d3files\models\D3files;
+use d3yii2\d3files\models\D3filesModel;
+use d3yii2\d3files\models\D3filesModelName;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
+use d3yii2\d3pop3\models\D3pop3RegexMasks;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
 use d3yii2\d3pop3\models\TypeSmtpForm;
@@ -19,19 +23,27 @@ use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
 use yii\db\Exception as DbException;
+use yii\db\Expression;
+use yii\helpers\FileHelper;
 use yii\helpers\VarDumper;
 use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii2d3\d3emails\logic\Email;
 use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
 
+use function basename;
+use function dirname;
+use function file_get_contents;
+use function file_put_contents;
 use function get_class;
 use function in_array;
 use function is_array;
 use function strlen;
+use function uniqid;
 
 /**
  * Class D3Mail
