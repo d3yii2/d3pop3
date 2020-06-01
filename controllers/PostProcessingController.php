@@ -45,8 +45,6 @@ class PostProcessingController extends D3CommandController
     {
         foreach ($this->getD3pop3EmailsWithSent() as $getD3pop3Email) {
             foreach (Yii::$app->components['postProcessComponents']['class'] as $index => $component) {
-                $getConfig = @Yii::$app->components['postProcessComponents']['config'][$index];
-
                 $transaction = $this
                     ->getConnection
                     ->beginTransaction();
@@ -54,11 +52,7 @@ class PostProcessingController extends D3CommandController
                 try {
                     if (class_exists($component)) {
 
-                        if (@count($getConfig) === 0) {
-                            $getConfig = null;
-                        }
-
-                        $getComponent = new $component($this->getConnection, $getConfig);
+                        $getComponent = new $component($this->getConnection);
                         $getResponse  = $getComponent->run($getD3pop3Email);
 
                         if (is_string($getResponse)) {
@@ -75,10 +69,7 @@ class PostProcessingController extends D3CommandController
                     $transaction->rollBack();
                 }
 
-                $this->storeFinalPointValue(
-                    $this->getRoute(),
-                    $getD3pop3Email['id']
-                );
+                SysCronFinalPoint::saveFinalPointValue($this->getRoute(), $getD3pop3Email['id']);
             }
         }
     }
@@ -97,14 +88,5 @@ class PostProcessingController extends D3CommandController
                         WHERE d3pop3_emails.body IS NOT NULL"
             )
             ->queryAll();
-    }
-
-    /**
-     * @param $getRoute
-     * @param $getEmailId
-     */
-    final public function storeFinalPointValue($getRoute, $getEmailId): void
-    {
-        SysCronFinalPoint::saveFinalPointValue($getRoute, $getEmailId);
     }
 }
