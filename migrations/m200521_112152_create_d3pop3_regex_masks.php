@@ -13,7 +13,7 @@ class m200521_112152_create_d3pop3_regex_masks extends Migration
     {
         $this->execute(
             '
-                CREATE TABLE `ea`.`d3pop3_regex_masks` 
+                CREATE TABLE `d3pop3_regex_masks` 
                 ( `id` INT NOT NULL AUTO_INCREMENT , `sys_company_id` SMALLINT UNSIGNED NULL , 
                 `type` ENUM(\'auto\',\'manual\') NOT NULL , 
                 `name` VARCHAR(255) NOT NULL , 
