@@ -8,6 +8,7 @@ use d3system\models\SysCronFinalPoint;
 use d3yii2\d3files\models\D3filesModel;
 use d3yii2\d3files\models\D3filesModelName;
 use d3yii2\d3pop3\models\D3pop3RegexMasks;
+use Exception;
 use Yii;
 use yii\db\Connection;
 use yii\db\Expression;
@@ -16,16 +17,16 @@ use yii2d3\d3emails\controllers\DownloadFromUrlController;
 
 use function file_get_contents;
 use function file_put_contents;
+use function implode;
 use function pathinfo;
 use function rename;
 use function strrpos;
 use function substr;
-use function uniqid;
 use function unlink;
 
 use const DIRECTORY_SEPARATOR;
 
-class DownloadFromUrlComponent
+class DownloadFromUrlComponent implements ComponentRunInterface
 {
     /**
      * @var \yii\db\ActiveQuery
@@ -50,6 +51,91 @@ class DownloadFromUrlComponent
         $this->modelD3pop3RegexMasks     = D3pop3RegexMasks::find();
         $this->downloadFromUrlController = new DownloadFromUrlController();
         $this->getConnection             = $getConnection;
+    }
+
+    /**
+     * @throws \yii\db\Exception
+     */
+    public function run(): void
+    {
+        $getD3pop3Emails = $this
+            ->getD3pop3EmailsWithSent();
+
+        $getGlobalDefinedMask = $this
+            ->getGlobalMask();
+
+        $transaction = $this
+            ->getConnection
+            ->beginTransaction();
+
+        foreach ($getD3pop3Emails as $getD3pop3Email) {
+            try {
+                $getBodyUrls = $this
+                    ->downloadFromUrlController
+                    ->collectBodyUrls($getD3pop3Email['body']);
+
+                $getBuildBodyUrls = $this
+                    ->downloadFromUrlController
+                    ->iterateRawUrls($getBodyUrls);
+
+                $getRebuildBodyRawUrls = implode(PHP_EOL, $getBuildBodyUrls);
+
+                if ($getCompanyDefinedMask = $this
+                    ->getCompanyMask($getD3pop3Email['company_id'])) {
+                    $getCompanyValidUrls = $this
+                        ->downloadFromUrlController
+                        ->filterValidUrls($getRebuildBodyRawUrls, $getCompanyDefinedMask->regexp);
+
+                    foreach ($getCompanyValidUrls as $getCompanyValidUrl => $getCompanyValidUrlFileName) {
+                        $getResponse = $this
+                            ->store(
+                                $getCompanyValidUrl,
+                                $getCompanyValidUrlFileName,
+                                D3pop3Email::class,
+                                $getD3pop3Email['id']
+                            );
+
+                        if ($getResponse) {
+                            $this->out('Finishing processing company emailId: ' . $getD3pop3Email['id']);
+                        } else {
+                            $this->out('Failed processing company emailId: ' . $getD3pop3Email['id']);
+                        }
+                    }
+                } else {
+                    $getGlobalValidUrls = $this
+                        ->downloadFromUrlController
+                        ->filterValidUrls($getRebuildBodyRawUrls, $getGlobalDefinedMask->regexp);
+
+                    foreach ($getGlobalValidUrls as $getGlobalValidUrl => $getGlobalValidUrlFileName) {
+                        $getResponse = $this
+                            ->store(
+                                $getGlobalValidUrl,
+                                $getGlobalValidUrlFileName,
+                                D3pop3Email::class,
+                                $getD3pop3Email['id']
+                            );
+
+                        if ($getResponse) {
+                            $this->out('Finishing processing global emailId: ' . $getD3pop3Email['id']);
+                        } else {
+                            $this->out('Failed processing global emailId: ' . $getD3pop3Email['id']);
+                        }
+                    }
+                }
+
+                $transaction->commit();
+            } catch (Exception $e) {
+                Yii::error($e->getMessage());
+                Yii::error($e->getTraceAsString());
+                $transaction->rollBack();
+            }
+
+            $this
+                ->storeFinalPointValue(
+                    $this->getRoute(),
+                    $getD3pop3Email['id']
+                );
+        }
     }
 
     /**
@@ -162,7 +248,9 @@ class DownloadFromUrlComponent
             $modelM->model_id      = $modelId;
             $modelM->save();
 
-            $getFullPathWithFileNameRenamed = $getUploadPath . '/' . $model->id . '.' . pathinfo($getFileName)['extension'];
+            $getFullPathWithFileNameRenamed = $getUploadPath . '/' . $model->id . '.' . pathinfo(
+                    $getFileName
+                )['extension'];
 
             rename($getFullPathWithFileName, $getFullPathWithFileNameRenamed);
 
