@@ -8,6 +8,7 @@ use Exception;
 use Yii;
 
 use function class_exists;
+use function is_string;
 
 class PostProcessingController extends D3CommandController
 {
@@ -47,7 +48,11 @@ class PostProcessingController extends D3CommandController
                 try {
                     if (class_exists($component)) {
                         $getComponent = new $component();
-                        $getComponent->run($getD3pop3Email);
+                        $getResponse  = $getComponent->run($getD3pop3Email);
+
+                        if (is_string($getResponse)) {
+                            $this->out($getResponse);
+                        }
                     }
 
                     $this->storeFinalPointValue(
