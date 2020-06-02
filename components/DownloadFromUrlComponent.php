@@ -6,6 +6,7 @@ namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3files\models\D3filesModel;
 use d3yii2\d3files\models\D3filesModelName;
+use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3RegexMasks;
 use Yii;
 use yii\db\Connection;
@@ -24,7 +25,7 @@ use function unlink;
 
 use const DIRECTORY_SEPARATOR;
 
-class DownloadFromUrlComponent implements ComponentRunInterface
+class DownloadFromUrlComponent implements ComponentInterface
 {
     /**
      * @var \yii\db\ActiveQuery
@@ -37,28 +38,36 @@ class DownloadFromUrlComponent implements ComponentRunInterface
     public $downloadFromUrlController;
 
     /**
+     * @var Connection
+     */
+    private $getConnection;
+
+    /**
      * DownloadFromUrlComponent constructor.
      */
     final public function __construct(Connection $getConnection)
     {
         $this->modelD3pop3RegexMasks     = D3pop3RegexMasks::find();
         $this->downloadFromUrlController = new DownloadFromUrlController();
+        $this->getConnection             = $getConnection;
     }
 
     /**
-     * @param array $getD3pop3Email
+     * @param D3pop3Email $getD3pop3Email
      * @return mixed
      * @throws \yii\base\Exception
      */
-    public function run(array $getD3pop3Email)
+    final public function run(D3pop3Email $getD3pop3Email)
     {
-        if ($getD3pop3Email['body'] !== null) {
+        $getCompanyId = $this->getD3pop3SendReceivFindCompanyId((int)$getD3pop3Email->id);
+
+        if ($getD3pop3Email->body !== null) {
             $getGlobalDefinedMask = $this
                 ->getGlobalMask();
 
             $getBodyUrls = $this
                 ->downloadFromUrlController
-                ->collectBodyUrls($getD3pop3Email['body']);
+                ->collectBodyUrls($getD3pop3Email->body);
 
             $getBuildBodyUrls = $this
                 ->downloadFromUrlController
@@ -67,7 +76,7 @@ class DownloadFromUrlComponent implements ComponentRunInterface
             $getRebuildBodyRawUrls = implode(PHP_EOL, $getBuildBodyUrls);
 
             if ($getCompanyDefinedMask = $this
-                ->getCompanyMask($getD3pop3Email['company_id'])) {
+                ->getCompanyMask((int)$getCompanyId)) {
                 $getCompanyValidUrls = $this
                     ->downloadFromUrlController
                     ->filterValidUrls($getRebuildBodyRawUrls, $getCompanyDefinedMask->regexp);
@@ -78,13 +87,13 @@ class DownloadFromUrlComponent implements ComponentRunInterface
                             $getCompanyValidUrl,
                             $getCompanyValidUrlFileName,
                             D3pop3Email::class,
-                            $getD3pop3Email['id']
+                            $getD3pop3Email->id
                         );
 
                     if ($getResponse) {
-                        return 'Finishing processing company emailId: ' . $getD3pop3Email['id'];
+                        return 'Finishing processing company emailId: ' . $getD3pop3Email->id;
                     } else {
-                        return 'Failed processing company emailId: ' . $getD3pop3Email['id'];
+                        return 'Failed processing company emailId: ' . $getD3pop3Email->id;
                     }
                 }
             } else {
@@ -98,13 +107,13 @@ class DownloadFromUrlComponent implements ComponentRunInterface
                             $getGlobalValidUrl,
                             $getGlobalValidUrlFileName,
                             D3pop3Email::class,
-                            $getD3pop3Email['id']
+                            $getD3pop3Email->id
                         );
 
                     if ($getResponse) {
-                        return 'Finishing processing global emailId: ' . $getD3pop3Email['id'];
+                        return 'Finishing processing global emailId: ' . $getD3pop3Email->id;
                     } else {
-                        return 'Failed processing global emailId: ' . $getD3pop3Email['id'];
+                        return 'Failed processing global emailId: ' . $getD3pop3Email->id;
                     }
                 }
             }
@@ -133,10 +142,10 @@ class DownloadFromUrlComponent implements ComponentRunInterface
     }
 
     /**
-     * @param $getCompanyId
+     * @param int $getCompanyId
      * @return array|\yii\db\ActiveRecord|null
      */
-    final public function getCompanyMask($getCompanyId)
+    final public function getCompanyMask(int $getCompanyId)
     {
         return $this->modelD3pop3RegexMasks
             ->where(
@@ -146,6 +155,24 @@ class DownloadFromUrlComponent implements ComponentRunInterface
                 ]
             )
             ->one();
+    }
+
+    /**
+     * @param int $getEmailId
+     * @return mixed
+     * @throws \yii\db\Exception
+     */
+    private function getD3pop3SendReceivFindCompanyId(int $getEmailId)
+    {
+        $result = $this->getConnection
+            ->createCommand(
+                "SELECT d3pop3_send_receiv.email_id, d3pop3_send_receiv.company_id FROM `d3pop3_send_receiv`  
+                        WHERE d3pop3_send_receiv.email_id = '" . $getEmailId . "'  
+                        "
+            )
+            ->queryOne();
+
+        return $result['company_id'];
     }
 
     /**

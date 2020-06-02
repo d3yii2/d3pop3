@@ -4,6 +4,7 @@ namespace d3yii2\d3pop3\controllers;
 
 use d3system\commands\D3CommandController;
 use d3system\models\SysCronFinalPoint;
+use d3yii2\d3pop3\models\D3pop3Email;
 use Exception;
 use Yii;
 
@@ -35,7 +36,7 @@ class PostProcessingController extends D3CommandController
      */
     public function actionIndex(): void
     {
-        foreach ($this->getD3pop3EmailsWithSent() as $getD3pop3Email) {
+        foreach ($this->getEmailsToProcess() as $getD3pop3Email) {
             foreach (Yii::$app->components['postProcessComponents']['class'] as $component) {
                 $transaction = $this
                     ->getConnection
@@ -48,7 +49,7 @@ class PostProcessingController extends D3CommandController
                     if (is_string($getResponse)) {
                         $this->out($getResponse);
                     } else {
-                        $this->out('Unable processing' . $getD3pop3Email['id']);
+                        $this->out('Unable processing' . $getD3pop3Email->id);
                     }
 
                     $transaction->commit();
@@ -58,27 +59,35 @@ class PostProcessingController extends D3CommandController
                     $transaction->rollBack();
                 }
 
-                SysCronFinalPoint::saveFinalPointValue($this->getRoute(), $getD3pop3Email['id']);
+                SysCronFinalPoint::saveFinalPointValue($this->getRoute(), (string)$getD3pop3Email->id);
             }
         }
     }
 
     /**
-     * @return array|\yii\db\DataReader
-     * @throws \yii\db\Exception
+     * @param int $getLimit
+     * @return array|null
      */
-    final public function getD3pop3EmailsWithSent(): ?array
+    final public function getEmailsToProcess(int $getLimit = 100): ?array
     {
-        return $this->getConnection
-            ->createCommand(
-                "SELECT d3pop3_emails.id, d3pop3_emails.body, d3pop3_send_receiv.company_id FROM `d3pop3_send_receiv`  
-                        LEFT JOIN d3pop3_emails
-                        ON d3pop3_emails.id = d3pop3_send_receiv.email_id
-                        RIGHT JOIN sys_cron_final_point
-                        ON sys_cron_final_point.value = d3pop3_send_receiv.email_id
-                        WHERE sys_cron_final_point.route = '" . $this->getRoute() . "'  
-                        "
+        $lastProcesedEmailId = SysCronFinalPoint::find()
+            ->select('value')
+            ->where(
+                [
+                    'route' => $this->getRoute(),
+                ]
             )
-            ->queryAll();
+            ->max('value');
+
+        return D3pop3Email::find()
+            ->where(
+                [
+                    '>',
+                    'id',
+                    $lastProcesedEmailId ?? 0
+                ]
+            )
+            ->limit($getLimit)
+            ->all();
     }
 }
