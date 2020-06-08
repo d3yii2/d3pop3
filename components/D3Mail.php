@@ -417,7 +417,7 @@ class D3Mail
      * @param string $status
      * @return $this
      */
-    public function updateSendReceiveStatus(string $status = D3pop3SendReceiv::STATUS_SENT): self
+    public function updateSendReceiveStatus(string $status = D3pop3SendReceiv::STATUS_DRAFT): self
     {
         $this->sendReceiveList = $this->email->d3pop3SendReceivs ?? [];
         $this->setSendReceiveAttrs(['status' => $status]);
