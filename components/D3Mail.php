@@ -592,6 +592,7 @@ class D3Mail
     public function addAddressTo(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
+        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_TO;
         $address->email_address = $email;
         $address->name = $name;
@@ -780,6 +781,7 @@ class D3Mail
      */
     public function loadToForm(MailForm $form): MailForm
     {
+        $form->email_id = $this->getEmailId();
         $form->from = $this->email->from;
         $form->from_name = $this->email->from_name;
 
@@ -921,6 +923,7 @@ class D3Mail
     public function addAddressReply(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
+        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
         $address->email_address = $email;
         $address->name = $name;
@@ -940,6 +943,7 @@ class D3Mail
         }
 
         $address = new D3pop3EmailAddress();
+        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
         $address->email_address = $email;
         $address->name = $name;
@@ -977,6 +981,7 @@ class D3Mail
         }
 
         $address = new D3pop3EmailAddress();
+        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
         $address->email_address = $email;
         $address->name = $name;
