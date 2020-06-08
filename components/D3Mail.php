@@ -612,22 +612,44 @@ class D3Mail
             throw new D3ActiveRecordException($this->email);
         }
 
-        foreach ($this->addressList as $address) {
-            $address->email_id = $this->email->id;
-            if (!$address->save()) {
-                throw new D3ActiveRecordException($address);
-            }
-        }
+        $this->saveAddressList();
 
         $this->saveSendReceive();
 
-        foreach ($this->emailModelList as $emailModel) {
-            $emailModel->email_id = $this->email->id;
-            if (!$emailModel->save()) {
-                throw new D3ActiveRecordException($emailModel);
-            }
-        }
+        $this->saveEmailModelList();
 
+        $this->saveAddressList();
+
+        $this->saveAttachmentContentList();
+    }
+
+    /**
+     * @throws Exception
+     * @throws ForbiddenHttpException
+     * @throws ReflectionException
+     */
+    public function saveAttachmentContentList(): void
+    {
+        foreach ($this->attachmentContentList as $attachment) {
+            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
+            if (!preg_match($attachment['fileTypes'], $ext)) {
+                continue;
+            }
+            D3files::saveContent(
+                $attachment['fileName'],
+                D3pop3Email::class,
+                $this->email->id,
+                $attachment['content'],
+                $attachment['fileTypes']
+            );
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function saveAttachmentsList(): void
+    {
         foreach ($this->attachmentList as $attachment) {
             $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
             if (!preg_match($attachment['fileTypes'], $ext)) {
@@ -641,18 +663,36 @@ class D3Mail
                 $attachment['fileTypes']
             );
         }
-        foreach ($this->attachmentContentList as $attachment) {
-            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
-            if (!preg_match($attachment['fileTypes'], $ext)) {
-                continue;
+    }
+
+    /**
+     * @throws D3ActiveRecordException
+     */
+    public function saveEmailModelList(): void
+    {
+        foreach ($this->emailModelList as $emailModel) {
+            $emailModel->email_id = $this->email->id;
+            if (!$emailModel->save()) {
+                throw new D3ActiveRecordException($emailModel);
             }
-            D3files::saveContent(
-                $attachment['fileName'],
-                D3pop3Email::class,
-                $this->email->id,
-                $attachment['content'],
-                $attachment['fileTypes']
-            );
+        }
+    }
+
+    /**
+     * @throws D3ActiveRecordException
+     */
+    public function saveAddressList(): void
+    {
+        foreach ($this->addressList as $address) {
+            /** @var D3pop3EmailAddress $address_id */
+            $address->email_id = $this->email->id;
+            if (!$address->save()) {
+                $errors = $address->getErrors();
+                if (isset($errors['email_address'])) {
+                    throw new D3ActiveRecordException($address, null, '', ['email_address']);
+                }
+                throw new D3ActiveRecordException($address);
+            }
         }
     }
 
