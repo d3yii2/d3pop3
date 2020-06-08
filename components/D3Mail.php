@@ -119,6 +119,14 @@ class D3Mail
     }
 
     /**
+     * @return D3pop3EmailAddress[]
+     */
+    public function getAddressList(): array
+    {
+        return $this->addressList;
+    }
+
+    /**
      * @return D3pop3Email
      */
     public function getEmail(): D3pop3Email
@@ -559,6 +567,14 @@ class D3Mail
     }
 
     /**
+     * @return string
+     */
+    public function getEmailStatus(): ?string
+    {
+        return $this->email->d3pop3SendReceivs[0]->status ?? null;
+    }
+
+    /**
      * @return array|D3pop3EmailAddress[]
      */
     private function getEmailAddress(): array
@@ -750,6 +766,16 @@ class D3Mail
         }
 
         return $replyD3Mail;
+    }
+
+    /**
+     * Get formatted tag label from address model values
+     * @param $addr
+     * @return string
+     */
+    public function getTagLabel($addr): string
+    {
+        return !empty($addr->name) ? $addr->name . ' &lt;' . $addr->email_address . '&gt;' : $addr->email_address;
     }
 
     /**
