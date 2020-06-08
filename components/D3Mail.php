@@ -496,10 +496,8 @@ class D3Mail
         } else {
             $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
         }
-        try {
-            $replyD3Mail->save();
-        } catch (\Exception $e) {
-        }
+
+        $replyD3Mail->save();
 
         return $replyD3Mail;
     }
@@ -760,10 +758,8 @@ class D3Mail
         } else {
             $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
         }
-        try {
-            $replyD3Mail->save();
-        } catch (\Exception $e) {
-        }
+
+        $replyD3Mail->save();
 
         return $replyD3Mail;
     }
