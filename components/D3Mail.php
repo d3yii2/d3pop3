@@ -844,9 +844,9 @@ class D3Mail
             ->setSubject($form->subject)
             ->setBodyPlain($form->body);
 
-        $this->setRecipients($form, 'to', D3pop3EmailAddress::ADDRESS_TYPE_TO);
-        $this->setRecipients($form, 'cc', D3pop3EmailAddress::ADDRESS_TYPE_CC);
-        $this->setRecipients($form, 'bcc', D3pop3EmailAddress::ADDRESS_TYPE_BCC);
+        $this->createRecipients($form, 'to', D3pop3EmailAddress::ADDRESS_TYPE_TO);
+        $this->createRecipients($form, 'cc', D3pop3EmailAddress::ADDRESS_TYPE_CC);
+        $this->createRecipients($form, 'bcc', D3pop3EmailAddress::ADDRESS_TYPE_BCC);
 
         return true;
     }
@@ -866,7 +866,7 @@ class D3Mail
      * @param string $type
      * @throws Exception
      */
-    private function setRecipients(MailForm $form, string $attr, string $type): void
+    private function createRecipients(MailForm $form, string $attr, string $type): bool
     {
         $contactIds = [];
         $emails = [];
