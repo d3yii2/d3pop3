@@ -853,34 +853,20 @@ class D3Mail
      */
     private function createRecipients(MailForm $form, string $attr, string $type): bool
     {
-        $contactIds = [];
-        $emails = [];
-
-        foreach ($form->{$attr} as $i => $target) {
-            if (!is_numeric($target) && !in_array($target, $emails, true)) {
-                $emails[] = $target;
+        if (!is_array($form->{$attr})) {
+            return false;
+        }
+        foreach ($form->{$attr} as $id => $email) {
+            if (is_int($id) && 0 < $id) {
+                $address = D3pop3EmailAddress::findOne($id);
+                if (! $address) {
+                    throw new NotFoundHttpException('D3pop3SendReceiv record not found by id: ' . $id);
+                }
+                $this->addressList[] = $address;
                 continue;
             }
-            $contactIds[] = (int)$target;
-        }
 
-        if (!empty($contactIds)) {
-            $contacts = D3pPersonContact::find()->where(['in', 'id', $contactIds])->with('person')->all();
-
-            if (!$contacts) {
-                throw new Exception('Contacts not found by ID list: ' . implode(',', $contacts));
-            }
-
-            foreach ($contacts as $contact) {
-                $name = $contact->person->first_name . ' ' . $contact->person->last_name;
-
-                $methodName = 'addAddress' . $type;
-
-                $this->$methodName($contact->contact_value, $name);
-            }
-        }
-
-        foreach ($emails as $email) {
+            // Ja ID ir 0, tad ievadīts jauns epasts
             switch ($type) {
                 case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
                     $this->addAddressReply($email, self::EMPTY_NAME);
@@ -895,6 +881,7 @@ class D3Mail
                     $this->addAddressTo($email, self::EMPTY_NAME);
             }
         }
+        return true;
     }
 
     /**
