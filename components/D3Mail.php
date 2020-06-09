@@ -3,47 +3,37 @@
 namespace d3yii2\d3pop3\components;
 
 use d3system\exceptions\D3ActiveRecordException;
-use d3yii2\d3files\components\FileHandler;
 use d3yii2\d3files\models\D3files;
-use d3yii2\d3files\models\D3filesModel;
-use d3yii2\d3files\models\D3filesModelName;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
-use d3yii2\d3pop3\models\D3pop3RegexMasks;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
 use d3yii2\d3pop3\models\TypeSmtpForm;
 use eaBlankonThema\components\FlashHelper;
 use Html2Text\Html2Text;
 use Html2Text\Html2TextException;
+use ReflectionException;
 use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
 use yii\db\Exception as DbException;
-use yii\db\Expression;
-use yii\helpers\FileHelper;
 use yii\helpers\VarDumper;
 use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
-use yii\web\MethodNotAllowedHttpException;
+use yii\web\NotFoundHttpException;
 use yii2d3\d3emails\logic\Email;
 use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
-use yii2d3\d3persons\models\D3pPersonContact;
 use yii2d3\d3persons\models\User;
 
-use function basename;
-use function dirname;
-use function file_get_contents;
-use function file_put_contents;
 use function get_class;
 use function in_array;
 use function is_array;
+use function is_int;
 use function strlen;
-use function uniqid;
 
 /**
  * Class D3Mail
@@ -256,6 +246,8 @@ class D3Mail
 
     /**
      * @return array
+     * @throws DbException
+     * @throws ReflectionException
      */
     public function getAttachments(): ?array
     {
@@ -299,7 +291,8 @@ class D3Mail
                         $tranportConfig['encryption'] = $smtpConfig['ssl'];
 
                         //@FIXME - should be self signed certificates supported?
-                        //\Yii::$app->mailer->setStreamOptions(['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                        //\Yii::$app->mailer->setStreamOptions(
+                        //['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
                     }
 
                     Yii::$app->mailer->setTransport($tranportConfig);
@@ -400,8 +393,7 @@ class D3Mail
     public function addSendReceiveOutFromCompany(
         int $companyId = 0,
         string $status = D3pop3SendReceiv::STATUS_NEW
-    ): self
-    {
+    ): self {
         if (!$companyId) {
             $companyId = (int)Yii::$app->SysCmp->getActiveCompanyId();
         }
@@ -474,7 +466,6 @@ class D3Mail
         if (empty($settings->email)) {
             throw new Exception(Yii::t('d3pop3', 'Please set email in My Company Email Settings'));
         }
-
 
         $replyD3Mail = new self();
 
@@ -554,7 +545,6 @@ class D3Mail
     {
         /** @var D3pop3EmailAddress[] $list */
         $list = [];
-        /** @var D3pop3EmailAddress $address */
         foreach ($this->getEmailAddress() as $address) {
             if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY) {
                 $list[] = $address;
@@ -604,7 +594,7 @@ class D3Mail
      * @throws D3ActiveRecordException
      * @throws Exception
      * @throws ForbiddenHttpException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function save(): void
     {
@@ -821,7 +811,6 @@ class D3Mail
     {
         /** @var D3pop3EmailAddress[] $list */
         $list = [];
-        /** @var D3pop3EmailAddress $address */
         foreach ($this->getEmailAddress() as $address) {
             if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
                 $list[] = $address;
@@ -864,6 +853,7 @@ class D3Mail
      * @param MailForm $form
      * @param string $attr
      * @param string $type
+     * @return bool
      * @throws Exception
      */
     private function createRecipients(MailForm $form, string $attr, string $type): bool
