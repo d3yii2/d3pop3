@@ -775,12 +775,6 @@ class D3Mail
         $form->from = $this->email->from;
         $form->from_name = $this->email->from_name;
 
-        $toAdreses = $this->getToAdreses();
-
-        foreach ($toAdreses as $addr) {
-            $form->to[$addr->id] = $this->getTagLabel($addr);
-        }
-
         $form->subject = $this->email->subject;
 
         $signatureModel = Email::getActiveCompanySignatureModel();
