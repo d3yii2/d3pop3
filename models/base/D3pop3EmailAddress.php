@@ -47,7 +47,7 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
     {
         return [
             [['email_id'], 'required'],
-            [['email_id'], 'integer'],
+            [['id', 'email_id'], 'integer'],
             [['address_type'], 'string'],
             [['email_address', 'name'], 'string', 'max' => 255],
             [['email_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3Email::className(), 'targetAttribute' => ['email_id' => 'id']],
