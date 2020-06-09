@@ -787,12 +787,9 @@ class D3Mail
 
         $toAdreses = $this->getToAdreses();
 
-        if (!empty($toAdreses[0]->email_address)) {
-            $form->to[] = $toAdreses[0]->email_address ?? '';
+        foreach ($toAdreses as $addr) {
+            $form->to[$addr->id] = $this->getTagLabel($addr);
         }
-        $form->to_name = isset($toAdreses[0]->name)
-            ? $toAdreses[0]->name . ' &lt;' . $toAdreses[0]->email_address . '&gt;'
-            : self::EMPTY_NAME;
 
         $form->subject = $this->email->subject;
 
