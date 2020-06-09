@@ -821,7 +821,8 @@ class D3Mail
      */
     public function loadFromForm(MailForm $form): bool
     {
-        $this->setFromEmail($form->from)
+        $this->setEmailId($form->email_id)
+            ->setFromEmail($form->from)
             ->setFromName($form->from_name)
             ->clearAddressTo()
             ->setSubject($form->subject)
