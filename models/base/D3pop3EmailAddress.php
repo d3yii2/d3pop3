@@ -57,7 +57,8 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
                     self::ADDRESS_TYPE_BCC,
                     self::ADDRESS_TYPE_REPLAY,
                 ]
-            ]
+            ],
+            [['email_address'], 'email'],
         ];
     }
 
