@@ -314,7 +314,7 @@ class D3Mail
                 /** @var D3pop3EmailAddress $address */
                 foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
                     switch ($address->address_type) {
-                        case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
+                        case D3pop3EmailAddress::ADDRESS_TYPE_REPLY:
                             $message->setReplyTo($address->fullAddress());
                             break;
                         case D3pop3EmailAddress::ADDRESS_TYPE_CC:
@@ -546,7 +546,7 @@ class D3Mail
         /** @var D3pop3EmailAddress[] $list */
         $list = [];
         foreach ($this->getEmailAddress() as $address) {
-            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLAY) {
+            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_REPLY) {
                 $list[] = $address;
             }
         }
@@ -868,8 +868,8 @@ class D3Mail
 
             // Ja ID ir 0, tad ievadīts jauns epasts
             switch ($type) {
-                case D3pop3EmailAddress::ADDRESS_TYPE_REPLAY:
-                    $this->addAddressReply($email, self::EMPTY_NAME);
+                case D3pop3EmailAddress::ADDRESS_TYPE_REPLY:
+                    $this->fillAdressReply($email, self::EMPTY_NAME);
                     break;
                 case D3pop3EmailAddress::ADDRESS_TYPE_CC:
                     $this->addAddressCc($email, self::EMPTY_NAME);
@@ -893,7 +893,7 @@ class D3Mail
     {
         $address = new D3pop3EmailAddress();
         $address->email_id = $this->getEmailId();
-        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLAY;
+        $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLY;
         $address->email_address = $email;
         $address->name = $name;
         $this->addressList[] = $address;
