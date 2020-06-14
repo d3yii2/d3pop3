@@ -514,6 +514,18 @@ class D3Mail
     }
 
     /**
+     * @return array
+     */
+    public static function getAddressTypes(): array
+    {
+        return [
+            D3pop3EmailAddress::ADDRESS_TYPE_TO,
+            D3pop3EmailAddress::ADDRESS_TYPE_CC,
+            D3pop3EmailAddress::ADDRESS_TYPE_BCC,
+        ];
+    }
+
+    /**
      * ja nav plain body, konvertee HTML body
      * @return string
      * @throws Html2TextException
