@@ -859,6 +859,18 @@ class D3Mail
     }
 
     /**
+     * @throws Exception
+     */
+    public function fillAddressList($form): void
+    {
+        $addressTypes = self::getAddressTypes();
+
+        foreach ($addressTypes as $type) {
+            $this->fillAdressListAttribute($form, strtolower($type), $type);
+        }
+    }
+
+    /**
      * @return $this
      */
     private function clearAddressTo(): self
