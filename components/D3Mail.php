@@ -613,19 +613,10 @@ class D3Mail
         $this->email->from_user_id = $this->from_user_id;
         $this->email->email_container_id = $this->email_container_id;
         $this->email->email_container_class = $this->email_container_class;
+
         if (!$this->email->save()) {
             throw new D3ActiveRecordException($this->email);
         }
-
-        $this->saveAddressList();
-
-        $this->saveSendReceive();
-
-        $this->saveEmailModelList();
-
-        $this->saveAddressList();
-
-        $this->saveAttachmentContentList();
     }
 
     /**
@@ -752,7 +743,27 @@ class D3Mail
 
         $replyD3Mail->save();
 
+        $replyD3Mail->saveRelations();
+
         return $replyD3Mail;
+    }
+
+    /**
+     * Save the relations: D3pop3EmailAddress, D3pop3SendReceiv, D3pop3EmailModel, Attachemnt contents
+     * @throws D3ActiveRecordException
+     * @throws Exception
+     * @throws ForbiddenHttpException
+     * @throws ReflectionException
+     */
+    public function saveRelations()
+    {
+        $this->saveAddressList();
+
+        $this->saveSendReceive();
+
+        $this->saveEmailModelList();
+
+        $this->saveAttachmentContentList();
     }
 
     /**
