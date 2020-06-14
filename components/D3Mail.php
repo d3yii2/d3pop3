@@ -409,7 +409,7 @@ class D3Mail
      * @param string $status
      * @return $this
      */
-    public function updateSendReceiveStatus(string $status = D3pop3SendReceiv::STATUS_DRAFT): self
+    public function setSendReceiveStatus(string $status = D3pop3SendReceiv::STATUS_DRAFT): self
     {
         $this->sendReceiveList = $this->email->d3pop3SendReceivs ?? [];
         $this->setSendReceiveAttrs(['status' => $status]);
@@ -579,7 +579,7 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function addAddressTo(string $email, $name = null): self
+    public function fillAdressTo(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->email_id = $this->getEmailId();
@@ -736,9 +736,9 @@ class D3Mail
             ->addSendReceiveOutFromCompany();
 
         if ($replyAddreses = $this->getReplyAddreses()) {
-            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
+            $replyD3Mail->fillAdressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
         } else {
-            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
+            $replyD3Mail->fillAdressTo($this->email->from, $this->email->from_name);
         }
 
         $replyD3Mail->save();
@@ -862,7 +862,7 @@ class D3Mail
      * @return bool
      * @throws Exception
      */
-    private function createRecipients(MailForm $form, string $attr, string $type): bool
+    private function fillAdressListAttribute(MailForm $form, string $attr, string $type): bool
     {
         if (!is_array($form->{$attr})) {
             return false;
@@ -883,13 +883,13 @@ class D3Mail
                     $this->fillAdressReply($email, self::EMPTY_NAME);
                     break;
                 case D3pop3EmailAddress::ADDRESS_TYPE_CC:
-                    $this->addAddressCc($email, self::EMPTY_NAME);
+                    $this->fillAdressCc($email, self::EMPTY_NAME);
                     break;
                 case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
-                    $this->addAddressBcc($email, self::EMPTY_NAME);
+                    $this->fillAdressBcc($email, self::EMPTY_NAME);
                     break;
                 default:
-                    $this->addAddressTo($email, self::EMPTY_NAME);
+                    $this->fillAdressTo($email, self::EMPTY_NAME);
             }
         }
         return true;
@@ -900,7 +900,7 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function addAddressReply(string $email, $name = null): self
+    public function fillAdressReply(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->email_id = $this->getEmailId();
@@ -916,7 +916,7 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function addAddressCc(string $email, $name = null): ?self
+    public function fillAdressCc(string $email, $name = null): ?self
     {
         if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
             return null;
@@ -951,7 +951,7 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function addAddressBcc(string $email, $name = null): ?self
+    public function fillAdressBcc(string $email, $name = null): ?self
     {
         if ($this->existsInAddressList(
             $email,
