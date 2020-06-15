@@ -22,4 +22,12 @@ class D3pop3EmailAddress extends BaseD3pop3EmailAddress
 
         return [$this->email_address => $this->name];
     }
+
+    /**
+     * @return array
+     */
+    public static function getTypes(): array
+    {
+        return array_keys(parent::optsAddressType());
+    }
 }
