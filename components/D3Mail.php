@@ -18,6 +18,7 @@ use Html2Text\Html2TextException;
 use ReflectionException;
 use Yii;
 use yii\base\Exception;
+use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\db\Exception as DbException;
 use yii\helpers\VarDumper;
@@ -45,7 +46,7 @@ class D3Mail
     /** @var D3pop3Email */
     private $email;
     /** @var string */
-    private $emailId;
+    private $emailId = '';
     /** @var string */
     private $subject;
     /** @var string */
@@ -222,12 +223,9 @@ class D3Mail
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getEmailId(): ?string
+    public function getEmailId()
     {
-        return $this->email->id;
+        return $this->email->id ?? '';
     }
 
     /**
@@ -480,13 +478,8 @@ class D3Mail
             ->setBodyPlain('> ' . str_replace("\n", "\n> ", $this->getPlainBody()))
             ->setFromEmail($settings->email)
             ->setFromName(Yii::$app->person->firstName . ' ' . Yii::$app->person->lastName)
-            ->addSendReceiveOutFromCompany(0, \d3yii2\d3pop3\models\base\D3pop3SendReceiv::STATUS_DRAFT);
-
-        if ($replyAddreses = $this->getReplyAddreses()) {
-            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
-        } else {
-            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
-        }
+            ->addSendReceiveOutFromCompany(0, D3pop3SendReceiv::STATUS_DRAFT)
+            ->addAddressReply($this->email->from, $this->email->from_name);
 
         $replyD3Mail->save();
 
@@ -511,18 +504,6 @@ class D3Mail
     {
         $this->subject = $subject;
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getAddressTypes(): array
-    {
-        return [
-            D3pop3EmailAddress::ADDRESS_TYPE_TO,
-            D3pop3EmailAddress::ADDRESS_TYPE_CC,
-            D3pop3EmailAddress::ADDRESS_TYPE_BCC,
-        ];
     }
 
     /**
@@ -591,7 +572,7 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function fillAdressTo(string $email, $name = null): self
+    public function addAddressTo(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->email_id = $this->getEmailId();
@@ -629,6 +610,8 @@ class D3Mail
         if (!$this->email->save()) {
             throw new D3ActiveRecordException($this->email);
         }
+
+        $this->saveRelations();
     }
 
     /**
@@ -692,8 +675,7 @@ class D3Mail
     public function saveAddressList(): void
     {
         foreach ($this->addressList as $address) {
-            /** @var D3pop3EmailAddress $address_id */
-            $address->email_id = $this->email->id;
+            $address->email_id = $this->getEmailId();
             if (!$address->save()) {
                 $errors = $address->getErrors();
                 if (isset($errors['email_address'])) {
@@ -710,7 +692,7 @@ class D3Mail
     public function saveSendReceive(): void
     {
         foreach ($this->sendReceiveList as $sendReceive) {
-            $sendReceive->email_id = $this->email->id;
+            $sendReceive->email_id = $this->getEmailId();
             if (!$sendReceive->save()) {
                 throw new D3ActiveRecordException($sendReceive);
             }
@@ -748,14 +730,12 @@ class D3Mail
             ->addSendReceiveOutFromCompany();
 
         if ($replyAddreses = $this->getReplyAddreses()) {
-            $replyD3Mail->fillAdressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
+            $replyD3Mail->addAddressTo($replyAddreses[0]->email_address, $replyAddreses[0]->name);
         } else {
-            $replyD3Mail->fillAdressTo($this->email->from, $this->email->from_name);
+            $replyD3Mail->addAddressTo($this->email->from, $this->email->from_name);
         }
 
         $replyD3Mail->save();
-
-        $replyD3Mail->saveRelations();
 
         return $replyD3Mail;
     }
@@ -779,144 +759,20 @@ class D3Mail
     }
 
     /**
-     * Get formatted tag label from address model values
-     * @param $addr
-     * @return string
-     */
-    public function getTagLabel($addr): string
-    {
-        return !empty($addr->name) ? $addr->name . ' &lt;' . $addr->email_address . '&gt;' : $addr->email_address;
-    }
-
-    /**
-     * @param MailForm $form
-     * @return MailForm
-     */
-    public function loadToForm(MailForm $form): MailForm
-    {
-        $form->email_id = $this->getEmailId();
-        $form->from = $this->email->from;
-        $form->from_name = $this->email->from_name;
-
-        $form->subject = $this->email->subject;
-
-        $signatureModel = Email::getActiveCompanySignatureModel();
-
-        if ($signatureModel
-            && !empty($signatureModel->signature)
-            && D3pop3EmailSignature::POSITION_TOP === $signatureModel->position
-        ) {
-            $form->body .= $signatureModel->signature . PHP_EOL . PHP_EOL;
-        }
-
-        $form->body .= $this->email->body_plain;
-
-        if ($signatureModel
-            && !empty($signatureModel->signature)
-            && D3pop3EmailSignature::POSITION_BOTTOM === $signatureModel->position
-        ) {
-            $form->body .= PHP_EOL . PHP_EOL . $signatureModel->signature;
-        }
-
-        return $form;
-    }
-
-    /**
-     * @return array|D3pop3EmailAddress[]
-     */
-    public function getToAdreses(): array
-    {
-        /** @var D3pop3EmailAddress[] $list */
-        $list = [];
-        foreach ($this->getEmailAddress() as $address) {
-            if ($address->address_type === D3pop3EmailAddress::ADDRESS_TYPE_TO) {
-                $list[] = $address;
-            }
-        }
-
-        return $list;
-    }
-
-    /**
-     * @param MailForm $form
-     * @return bool
-     * @throws Exception
-     */
-    public function loadFromForm(MailForm $form): bool
-    {
-        $this->setEmailId($form->email_id)
-            ->setFromEmail($form->from)
-            ->setFromName($form->from_name)
-            ->clearAddressTo()
-            ->setSubject($form->subject)
-            ->setBodyPlain($form->body);
-
-        $this->createRecipients($form, 'to', D3pop3EmailAddress::ADDRESS_TYPE_TO);
-        $this->createRecipients($form, 'cc', D3pop3EmailAddress::ADDRESS_TYPE_CC);
-        $this->createRecipients($form, 'bcc', D3pop3EmailAddress::ADDRESS_TYPE_BCC);
-
-        return true;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function fillAddressList($form): void
-    {
-        $addressTypes = self::getAddressTypes();
-
-        foreach ($addressTypes as $type) {
-            $this->fillAdressListAttribute($form, strtolower($type), $type);
-        }
-    }
-
-    /**
      * @return $this
      */
-    private function clearAddressTo(): self
+    public function clearAddressTo(): self
     {
         $this->addressList = [];
         return $this;
     }
 
     /**
-     * @param MailForm $form
-     * @param string $attr
-     * @param string $type
-     * @return bool
-     * @throws Exception
+     * @param D3pop3EmailAddress $model
      */
-    private function fillAdressListAttribute(MailForm $form, string $attr, string $type): bool
+    public function setToAddressList(D3pop3EmailAddress $model)
     {
-        if (!is_array($form->{$attr})) {
-            return false;
-        }
-        foreach ($form->{$attr} as $id => $email) {
-            if (is_int($id) && 0 < $id) {
-                $address = D3pop3EmailAddress::findOne($id);
-                if (! $address) {
-                    throw new NotFoundHttpException('D3pop3SendReceiv record not found by id: ' . $id);
-                }
-                $this->addressList[] = $address;
-                continue;
-            }
-
-            // Ja ID ir 0, tad ievadīts jauns epasts
-            switch ($type) {
-                case D3pop3EmailAddress::ADDRESS_TYPE_REPLY:
-                    $this->fillAdressReply($email, self::EMPTY_NAME);
-                    break;
-                case D3pop3EmailAddress::ADDRESS_TYPE_CC:
-                    $this->fillAdressCc($email, self::EMPTY_NAME);
-                    break;
-                case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
-                    $this->fillAdressBcc($email, self::EMPTY_NAME);
-                    break;
-                default:
-                    $this->fillAdressTo($email, self::EMPTY_NAME);
-            }
-        }
-        return true;
+        $this->addressList[] = $model;
     }
 
     /**
@@ -924,10 +780,9 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function fillAdressReply(string $email, $name = null): self
+    public function addAddressReply(string $email, $name = null): self
     {
         $address = new D3pop3EmailAddress();
-        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLY;
         $address->email_address = $email;
         $address->name = $name;
@@ -940,14 +795,13 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function fillAdressCc(string $email, $name = null): ?self
+    public function addAddressCc(string $email, $name = null): ?self
     {
         if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
             return null;
         }
 
         $address = new D3pop3EmailAddress();
-        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_CC;
         $address->email_address = $email;
         $address->name = $name;
@@ -975,7 +829,7 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function fillAdressBcc(string $email, $name = null): ?self
+    public function addAddressBcc(string $email, $name = null): ?self
     {
         if ($this->existsInAddressList(
             $email,
@@ -985,7 +839,6 @@ class D3Mail
         }
 
         $address = new D3pop3EmailAddress();
-        $address->email_id = $this->getEmailId();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_BCC;
         $address->email_address = $email;
         $address->name = $name;
