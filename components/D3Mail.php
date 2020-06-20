@@ -120,7 +120,7 @@ class D3Mail
     /**
      * @return D3pop3Email
      */
-    public function getEmail(): D3pop3Email
+    public function getEmail(): ?D3pop3Email
     {
         return $this->email;
     }
