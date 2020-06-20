@@ -3,6 +3,7 @@
 namespace d3yii2\d3pop3\components;
 
 use d3system\exceptions\D3ActiveRecordException;
+use d3yii2\d3files\components\FileHandler;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
@@ -213,12 +214,8 @@ class D3Mail
      * @param string $fileTypes
      * @return $this
      */
-    public function addAttachmentContent(
-        $fileName,
-        $content,
-        $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
-    ): self {
-        $this->attachmentContentList[] = compact('fileName', 'content', 'fileTypes');
+    public function addAttachmentContent(string $modelClass, int $modelId, string $fileName, string $content): self {
+        $this->attachmentContentList[] = compact('modelClass', 'modelId', 'fileName', 'content');
 
         return $this;
     }
@@ -622,16 +619,12 @@ class D3Mail
     public function saveAttachmentContentList(): void
     {
         foreach ($this->attachmentContentList as $attachment) {
-            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
-            if (!preg_match($attachment['fileTypes'], $ext)) {
-                continue;
-            }
             D3files::saveContent(
                 $attachment['fileName'],
-                D3pop3Email::class,
-                $this->email->id,
+                $attachment['modelClass'],
+                $attachment['modelId'],
                 $attachment['content'],
-                $attachment['fileTypes']
+                \d3yii2\d3files\components\D3Files::getAllowedFileTypes($attachment['modelClass'])
             );
         }
     }
@@ -648,7 +641,7 @@ class D3Mail
             }
             D3files::saveFile(
                 $attachment['fileName'],
-                D3pop3Email::class,
+                $attachment['modelClass'],
                 $this->email->id,
                 $attachment['filePath'],
                 $attachment['fileTypes']
@@ -754,6 +747,8 @@ class D3Mail
         $this->saveSendReceive();
 
         $this->saveEmailModelList();
+
+        $this->saveAttachmentsList();
 
         $this->saveAttachmentContentList();
     }
