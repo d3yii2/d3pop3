@@ -16,6 +16,13 @@ class d3pop3 extends Module
     /** @var string regular expression for attachment validation */
     public $allowedAttachmentFileExtensions = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip)$/i';
 
+    /**
+     * define post processing objects with
+     * interface d3yii2\d3pop3\components\PostProcessingInterface
+     * @var array
+     */
+    public $postProcessComponents = [];
+
     public function init()
     {
         parent::init();

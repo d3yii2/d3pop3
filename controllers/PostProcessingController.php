@@ -3,91 +3,95 @@
 namespace d3yii2\d3pop3\controllers;
 
 use d3system\commands\D3CommandController;
+use d3system\exceptions\D3ActiveRecordException;
 use d3system\models\SysCronFinalPoint;
+use d3yii2\d3pop3\components\PostProcessingInterface;
+use d3yii2\d3pop3\d3pop3;
 use d3yii2\d3pop3\models\D3pop3Email;
+use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 
-use function is_string;
-
+/**
+ * Class PostProcessingController
+ * @package d3yii2\d3pop3\controllers
+ * @property d3pop3 $module
+ */
 class PostProcessingController extends D3CommandController
 {
-    /**
-     * @var \yii\db\Connection
-     */
-    public $getConnection;
-
-    /**
-     * PostProcessingController constructor.
-     * @param $id
-     * @param $module
-     * @param array $config
-     */
-    public function __construct($id, $module, $config = [])
-    {
-        $this->getConnection = $this->getConnection();
-
-        parent::__construct($id, $module, $config);
-    }
 
     /**
      * default action
+     * @param int $emailId
      * @return void
+     * @throws D3ActiveRecordException
+     * @throws InvalidConfigException
      */
-    public function actionIndex(): void
+    public function actionIndex(int $emailId = 0): void
     {
-        foreach ($this->getEmailsToProcess() as $getD3pop3Email) {
-            foreach (Yii::$app->components['postProcessComponents']['class'] as $component) {
-                $transaction = $this
-                    ->getConnection
+        if (!$lastProcessedEmailId = SysCronFinalPoint::getFinalPointValue($this->getRoute())) {
+            $lastProcessedEmailId = 0;
+        }
+
+        $components = [];
+
+        foreach ($this->module->postProcessComponents as $componentDef) {
+            $components[] = Yii::createObject($componentDef);
+        }
+        foreach ($this->getEmailsToProcess($emailId, $lastProcessedEmailId, 200) as $getD3pop3Email) {
+            /** @var $component PostProcessingInterface */
+            foreach ($components as $component) {
+                $this->out('Component: ' . $component->getName());
+                $transaction = Yii::$app
+                    ->db
                     ->beginTransaction();
 
                 try {
-                    $getComponent = new $component($this->getConnection);
-                    $getResponse  = $getComponent->run($getD3pop3Email);
-
-                    if (is_string($getResponse)) {
-                        $this->out($getResponse);
-                    } else {
-                        $this->out('Unable processing' . $getD3pop3Email->id);
-                    }
-
+                    $component->run($getD3pop3Email);
+                    $this->outList($component->getLogMessages());
                     $transaction->commit();
                 } catch (Exception $e) {
                     Yii::error($e->getMessage());
                     Yii::error($e->getTraceAsString());
                     $transaction->rollBack();
                 }
-
                 SysCronFinalPoint::saveFinalPointValue($this->getRoute(), (string)$getD3pop3Email->id);
             }
         }
     }
 
     /**
-     * @param int $getLimit
-     * @return array|null
+     * @param int $emailId
+     * @param int $lastProcessedEmailId
+     * @param int $limit
+     * @return D3pop3Email[]|null
      */
-    final public function getEmailsToProcess(int $getLimit = 100): ?array
+    final public function getEmailsToProcess(int $emailId, int $lastProcessedEmailId, int $limit): ?array
     {
-        $lastProcesedEmailId = SysCronFinalPoint::find()
-            ->select('value')
-            ->where(
-                [
-                    'route' => $this->getRoute(),
-                ]
-            )
-            ->max('value');
+        $activeQuery = D3pop3Email::find();
 
-        return D3pop3Email::find()
-            ->where(
-                [
-                    '>',
-                    'id',
-                    $lastProcesedEmailId ?? 0
-                ]
-            )
-            ->limit($getLimit)
+        if($emailId){
+            $activeQuery->where(['id' => $emailId]);
+        }else {
+            $activeQuery
+                ->innerJoin(
+                    'd3pop3_send_receiv',
+                    'd3pop3_emails.id = d3pop3_send_receiv.email_id'
+                )
+                ->where(
+                    [
+                        '>',
+                        'id',
+                        $lastProcessedEmailId
+                    ]
+                )
+                ->andWhere([
+                    '`d3pop3_send_receiv`.`direction`' => D3pop3SendReceiv::DIRECTION_IN
+                ]);
+        }
+        return $activeQuery
+            ->limit($limit)
             ->all();
     }
 }
