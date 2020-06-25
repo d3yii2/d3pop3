@@ -82,7 +82,7 @@ class PostProcessingController extends D3CommandController
                 ->where(
                     [
                         '>',
-                        'id',
+                        'd3pop3_emails.id',
                         $lastProcessedEmailId
                     ]
                 )

@@ -36,6 +36,10 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
 
         $this->messages = [];
         $this->messages[] = ' emailId: ' . $getD3pop3Email->id;
+        if(!$getD3pop3Email->body){
+            $this->messages[] = ' empty body - ignore';
+            return;
+        }
         $getGlobalDefinedMaskList = $this->getGlobalMask();
         $processedUrlList = [];
         foreach (array_merge($getGlobalDefinedMaskList, $this->getCompanyMask($getD3pop3Email)) as $mask) {
