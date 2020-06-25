@@ -133,7 +133,7 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
             return false;
         }
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($httpcode !== '200') {
+        if ($httpcode !== 200) {
             $this->messages[] = 'Invalid response code ' . $httpcode;
             return false;
         }
