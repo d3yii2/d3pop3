@@ -91,6 +91,7 @@ class PostProcessingController extends D3CommandController
                 ]);
         }
         return $activeQuery
+            ->orderBy(['d3pop3_emails.id'=>SORT_ASC])
             ->limit($limit)
             ->all();
     }
