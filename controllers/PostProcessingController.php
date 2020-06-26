@@ -28,7 +28,7 @@ class PostProcessingController extends D3CommandController
      * @throws D3ActiveRecordException
      * @throws InvalidConfigException
      */
-    public function actionIndex(int $emailId = 0): void
+    public function actionIndex(int $emailId = 0, int $debug = 0): void
     {
         if (!$lastProcessedEmailId = SysCronFinalPoint::getFinalPointValue($this->getRoute())) {
             $lastProcessedEmailId = 0;
@@ -37,9 +37,15 @@ class PostProcessingController extends D3CommandController
         $components = [];
 
         foreach ($this->module->postProcessComponents as $componentDef) {
-            $components[] = Yii::createObject($componentDef);
+            /** @var PostProcessingInterface $c */
+            $c = Yii::createObject($componentDef);
+            if($debug){
+                $c->setDebugOn();
+            }
+            $components[] = $c;
         }
         foreach ($this->getEmailsToProcess($emailId, $lastProcessedEmailId, 200) as $getD3pop3Email) {
+            $this->out('EmailId: ' . $getD3pop3Email->id);
             /** @var $component PostProcessingInterface */
             foreach ($components as $component) {
                 $this->out('Component: ' . $component->getName());
@@ -52,6 +58,7 @@ class PostProcessingController extends D3CommandController
                     $this->outList($component->getLogMessages());
                     $transaction->commit();
                 } catch (Exception $e) {
+                    $this->out($e->getMessage());
                     Yii::error($e->getMessage());
                     Yii::error($e->getTraceAsString());
                     $transaction->rollBack();

@@ -11,21 +11,22 @@ use d3yii2\d3pop3\models\D3pop3RegexMasks;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use Yii;
 use yii\base\Exception;
-use yii\db\ActiveQuery;
 use yii\helpers\BaseHtml;
 use yii\helpers\FileHelper;
 
 
 class DownloadFromUrlPostProcessing implements PostProcessingInterface
 {
-    /**
-     * @var ActiveQuery
-     */
-    public $modelD3pop3RegexMasks;
+
     /**
      * @var string[]
      */
     private $messages;
+    /**
+     * @var bool
+     */
+    private $debug = false;
+
 
     /**
      * @param D3pop3Email $getD3pop3Email
@@ -35,7 +36,6 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
     {
 
         $this->messages = [];
-        $this->messages[] = ' emailId: ' . $getD3pop3Email->id;
         if(!$getD3pop3Email->body){
             $this->messages[] = ' empty body - ignore';
             return;
@@ -43,6 +43,9 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
         $getGlobalDefinedMaskList = $this->getGlobalMask();
         $processedUrlList = [];
         foreach (array_merge($getGlobalDefinedMaskList, $this->getCompanyMask($getD3pop3Email)) as $mask) {
+            if($this->debug){
+                $this->messages[] = 'Debug: mask: ' . $mask;
+            }
             if (!preg_match_all($mask, $getD3pop3Email->body, $match)) {
                 continue;
             }
@@ -102,7 +105,7 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
     {
         foreach ($getD3pop3Email->d3pop3SendReceivs as $sendReceive) {
             if ($sendReceive->direction === D3pop3SendReceiv::DIRECTION_IN) {
-                return $this->modelD3pop3RegexMasks
+                return D3pop3RegexMasks::find()
                     ->select('regexp')
                     ->where([
                         'type' => 'manual',
@@ -130,7 +133,6 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_VERBOSE, 0);
         curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
             $this->messages[] = 'Request Error:' . curl_error($ch);
@@ -189,5 +191,10 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
 
         return (bool)preg_match($pattern, $value);
 
+    }
+
+    public function setDebugOn(): void
+    {
+        $this->debug = true;
     }
 }

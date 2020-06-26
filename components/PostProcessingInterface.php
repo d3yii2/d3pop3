@@ -11,6 +11,9 @@ use d3yii2\d3pop3\models\D3pop3Email;
  */
 interface PostProcessingInterface
 {
+
+    public function setDebugOn(): void;
+
     public function getName(): string;
 
     /**
