@@ -43,6 +43,8 @@ use function strlen;
  */
 class D3Mail
 {
+    public const EMAIL_MODEL_CLASS = D3pop3Email::class;
+
     private const EMPTY_NAME = '';
     /** @var D3pop3Email */
     private $email;
@@ -247,7 +249,7 @@ class D3Mail
     public function getAttachments(): ?array
     {
         try {
-            return D3files::getRecordFilesList(D3pop3Email::class, $this->email->id);
+            return D3files::getRecordFilesList(self::EMAIL_MODEL_CLASS, $this->email->id);
         } catch (ForbiddenHttpException $e) {
             FlashHelper::addDanger(Yii::t('d3system', 'Unexpected Server Error'));
         }
@@ -324,7 +326,7 @@ class D3Mail
                 }
 
                 try {
-                    foreach (D3files::getRecordFilesList(D3pop3Email::class, $this->email->id) as $file) {
+                    foreach (D3files::getRecordFilesList(self::EMAIL_MODEL_CLASS, $this->email->id) as $file) {
                         $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
                     }
 
@@ -621,8 +623,8 @@ class D3Mail
         foreach ($this->attachmentContentList as $attachment) {
             D3files::saveContent(
                 $attachment['fileName'],
-                $attachment['modelClass'],
-                $attachment['modelId'],
+                self::EMAIL_MODEL_CLASS,
+                $this->email->id,
                 $attachment['content'],
                 \d3yii2\d3files\components\D3Files::getAllowedFileTypes($attachment['modelClass'])
             );
@@ -641,7 +643,7 @@ class D3Mail
             }
             D3files::saveFile(
                 $attachment['fileName'],
-                $attachment['modelClass'],
+                self::EMAIL_MODEL_CLASS,
                 $this->email->id,
                 $attachment['filePath'],
                 $attachment['fileTypes']
