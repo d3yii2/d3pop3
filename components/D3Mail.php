@@ -216,8 +216,12 @@ class D3Mail
      * @param string $fileTypes
      * @return $this
      */
-    public function addAttachmentContent(string $modelClass, int $modelId, string $fileName, string $content): self {
-        $this->attachmentContentList[] = compact('modelClass', 'modelId', 'fileName', 'content');
+    public function addAttachmentContent(
+        $fileName,
+        $content,
+        $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
+    ): self {
+        $this->attachmentContentList[] = compact('fileName', 'content', 'fileTypes');
 
         return $this;
     }
@@ -626,7 +630,7 @@ class D3Mail
                 self::EMAIL_MODEL_CLASS,
                 $this->email->id,
                 $attachment['content'],
-                \d3yii2\d3files\components\D3Files::getAllowedFileTypes($attachment['modelClass'])
+                $attachment['fileTypes']
             );
         }
     }
