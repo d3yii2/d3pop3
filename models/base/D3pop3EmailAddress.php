@@ -29,8 +29,7 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
     const ADDRESS_TYPE_TO = 'To';
     const ADDRESS_TYPE_CC = 'CC';
     const ADDRESS_TYPE_BCC = 'BCC';
-    //@FIXME - Enum Replay nomainīt uz korektāku: Reply
-    const ADDRESS_TYPE_REPLY = 'Replay';
+    const ADDRESS_TYPE_REPLY = 'Reply';
     var $enum_labels = false;
     /**
      * @inheritdoc
