@@ -29,7 +29,7 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
     const ADDRESS_TYPE_TO = 'To';
     const ADDRESS_TYPE_CC = 'CC';
     const ADDRESS_TYPE_BCC = 'BCC';
-    const ADDRESS_TYPE_REPLAY = 'Replay';
+    const ADDRESS_TYPE_REPLY = 'Reply';
     var $enum_labels = false;
     /**
      * @inheritdoc
@@ -47,7 +47,7 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
     {
         return [
             [['email_id'], 'required'],
-            [['email_id'], 'integer'],
+            [['id', 'email_id'], 'integer'],
             [['address_type'], 'string'],
             [['email_address', 'name'], 'string', 'max' => 255],
             [['email_id'], 'exist', 'skipOnError' => true, 'targetClass' => \d3yii2\d3pop3\models\D3pop3Email::className(), 'targetAttribute' => ['email_id' => 'id']],
@@ -55,9 +55,10 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
                     self::ADDRESS_TYPE_TO,
                     self::ADDRESS_TYPE_CC,
                     self::ADDRESS_TYPE_BCC,
-                    self::ADDRESS_TYPE_REPLAY,
+                    self::ADDRESS_TYPE_REPLY,
                 ]
-            ]
+            ],
+            [['email_address'], 'email'],
         ];
     }
 
@@ -121,7 +122,7 @@ abstract class D3pop3EmailAddress extends \yii\db\ActiveRecord
             self::ADDRESS_TYPE_TO => Yii::t('d3pop3', self::ADDRESS_TYPE_TO),
             self::ADDRESS_TYPE_CC => Yii::t('d3pop3', self::ADDRESS_TYPE_CC),
             self::ADDRESS_TYPE_BCC => Yii::t('d3pop3', self::ADDRESS_TYPE_BCC),
-            self::ADDRESS_TYPE_REPLAY => Yii::t('d3pop3', self::ADDRESS_TYPE_REPLAY),
+            self::ADDRESS_TYPE_REPLY => Yii::t('d3pop3', self::ADDRESS_TYPE_REPLY),
         ];
     }
 
