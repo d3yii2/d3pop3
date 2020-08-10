@@ -203,9 +203,9 @@ class D3Mail
     public function addAttachment(
         $fileName,
         $filePath,
-        $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
+        $model = null
     ): self {
-        $this->attachmentList[] = compact('fileName', 'filePath', 'fileTypes');
+        $this->attachmentList[] = compact('fileName', 'filePath', 'model');
 
         return $this;
     }
@@ -219,9 +219,9 @@ class D3Mail
     public function addAttachmentContent(
         $fileName,
         $content,
-        $fileTypes = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm|txt|log|mxl|xml|zip)$/i'
+        $model = null
     ): self {
-        $this->attachmentContentList[] = compact('fileName', 'content', 'fileTypes');
+        $this->attachmentContentList[] = compact('fileName', 'content', 'model');
 
         return $this;
     }
@@ -625,12 +625,16 @@ class D3Mail
     public function saveAttachmentContentList(): void
     {
         foreach ($this->attachmentContentList as $attachment) {
+            $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
+            $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
+            $fileTypes =  \d3yii2\d3files\components\D3Files::getAllowedFileTypes($modelClass);
+            
             D3files::saveContent(
                 $attachment['fileName'],
-                self::EMAIL_MODEL_CLASS,
-                $this->email->id,
+                $modelClass,
+                $modelId,
                 $attachment['content'],
-                $attachment['fileTypes']
+                $fileTypes
             );
         }
     }
