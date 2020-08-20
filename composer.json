@@ -13,7 +13,8 @@
     "require": {
         "php": ">=5.4.0",
         "d3yii2/d3files": "0.9.*",
-        "unyii2/yii2-imap": "dev-master"
+        "unyii2/yii2-imap": "dev-master",
+        "ext-curl": "*"
     },
     "autoload": {
         "psr-4": {
