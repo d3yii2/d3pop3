@@ -313,28 +313,51 @@ class D3Mail
                 }
 
                 /** @var D3pop3EmailAddress $address */
+                $to = [];
+                $replyTo = [];
+                $cc = [];
+                $bcc = [];
                 foreach ($this->email->getD3pop3EmailAddresses()->all() as $address) {
                     switch ($address->address_type) {
                         case D3pop3EmailAddress::ADDRESS_TYPE_REPLY:
-                            $message->setReplyTo($address->fullAddress());
+                            $replyTo[] = $address->email_address;
                             break;
                         case D3pop3EmailAddress::ADDRESS_TYPE_CC:
-                            $message->setCc($address->fullAddress());
+                            $cc[] = $address->email_address;
                             break;
                         case D3pop3EmailAddress::ADDRESS_TYPE_BCC:
-                            $message->setBcc($address->fullAddress());
+                            $bcc[] = $address->email_address;
                             break;
                         default:
-                            $message->setTo($address->fullAddress());
+                            $to[] = $address->email_address;
                     }
                 }
 
+                if (!empty($to)) {
+                    $message->setTo($to);
+                }
+                if (!empty($replyTo)) {
+                    $message->setReplyTo($replyTo);
+                }
+                if (!empty($cc)) {
+                    $message->setCc($cc);
+                }
+                if (!empty($bcc)) {
+                    $message->setBcc($bcc);
+                }
+                
                 try {
                     foreach (D3files::getRecordFilesList(self::EMAIL_MODEL_CLASS, $this->email->id) as $file) {
                         $message->attach($file['file_path'], ['fileName' => $file['file_name']]);
                     }
 
-                    return $message->send();
+                    $sent = $message->send();
+                    
+                    if ($sent) {
+                        $this->setSendReceiveStatus(D3pop3SendReceiv::STATUS_SENT);
+                    }
+                    
+                    return $sent;
                 } catch (\Exception $e) {
                     $err = 'Send exception message: ' . $e->getMessage() . PHP_EOL
                        . $e->getTraceAsString() . PHP_EOL
