@@ -30,6 +30,7 @@ use yii2d3\d3emails\logic\Email;
 use yii2d3\d3emails\models\base\D3pop3EmailSignature;
 use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\User;
+use d3yii2\d3files\components\D3Files as D3FilesComponent;
 
 use function get_class;
 use function in_array;
@@ -650,7 +651,7 @@ class D3Mail
         foreach ($this->attachmentContentList as $attachment) {
             $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
             $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
-            $fileTypes =  \d3yii2\d3files\components\D3Files::getAllowedFileTypes($modelClass);
+            $fileTypes = D3FilesComponent::getAllowedFileTypes($modelClass);
             
             D3files::saveContent(
                 $attachment['fileName'],
@@ -668,16 +669,16 @@ class D3Mail
     public function saveAttachmentsList(): void
     {
         foreach ($this->attachmentList as $attachment) {
-            $ext = pathinfo($attachment['fileName'], PATHINFO_EXTENSION);
-            if (!preg_match($attachment['fileTypes'], $ext)) {
-                continue;
-            }
+            $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
+            $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
+            $fileTypes = D3FilesComponent::getAllowedFileTypes($modelClass);
+            
             D3files::saveFile(
                 $attachment['fileName'],
-                self::EMAIL_MODEL_CLASS,
-                $this->email->id,
+                $modelClass,
+                $modelId,
                 $attachment['filePath'],
-                $attachment['fileTypes']
+                $fileTypes
             );
         }
     }
