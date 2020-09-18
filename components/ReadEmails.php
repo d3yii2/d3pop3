@@ -135,13 +135,15 @@ class ReadEmails
 
                     /** @var IncomingMailAttachment $t */
                     foreach ($msg->getAttachments() as $t) {
+                        // @TODO - šo pārbaudi, iespējams, nevajag
+                        // Atļautie failu tipi definējas modeļos kā konstantes D3FILES_ALLOWED_EXT_REGEXP un apstrādājas D3Mail saveAttachmentsList()
                         $ext = pathinfo($t->name, PATHINFO_EXTENSION);
                         if(!preg_match(self::$allowedAttachmentFileExtensions,$ext)){
                             echo $i . ' Ignored attachment:' . $t->name . PHP_EOL;
                             continue;
                         }
                         echo $i . ' A:' . $t->name . PHP_EOL;
-                        $d3mail->addAttachment($t->name, $t->filePath, self::$allowedAttachmentFileExtensions);
+                        $d3mail->addAttachment($t->name, $t->filePath);
                     }
                     $d3mail->save();
                     if($cc->getMarkAsRead()) {
