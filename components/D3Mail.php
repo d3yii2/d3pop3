@@ -356,6 +356,7 @@ class D3Mail
                     
                     if ($sent) {
                         $this->setSendReceiveStatus(D3pop3SendReceiv::STATUS_SENT);
+                        $this->saveSendReceive();
                     }
                     
                     return $sent;
