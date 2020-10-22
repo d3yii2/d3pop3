@@ -13,8 +13,6 @@ class d3pop3 extends Module
     
     public $EmailContainers = [];
 
-    /** @var string regular expression for attachment validation */
-    public $allowedAttachmentFileExtensions = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip)$/i';
 
     /**
      * define post processing objects with

@@ -21,8 +21,6 @@ class D3Pop3Controller extends Controller {
      */
     public function actionRead($container = false) {
 
-        ReadEmails::$allowedAttachmentFileExtensions = Yii::$app->getModule('D3Pop3')->allowedAttachmentFileExtensions;
-
         $deletedRows = Action::clearOldRecords(2);
         $this->stdOutLine('Deleted ' . $deletedRows . ' from table d3pop3_actions oldest as 2 hours');
         $error = false;

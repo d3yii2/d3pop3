@@ -12,6 +12,7 @@ use d3yii2\d3pop3\models\D3pop3EmailAddress;
 use d3yii2\d3pop3\models\D3pop3EmailModel;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\D3pPerson;
+use d3yii2\d3pop3\models\D3pop3EmailError;
 use d3yii2\d3pop3\models\TypeSmtpForm;
 use eaBlankonThema\components\FlashHelper;
 use Html2Text\Html2Text;
@@ -769,7 +770,18 @@ class D3Mail
 
         $this->saveEmailModelList();
 
-        $this->saveAttachmentsList();
+        try {
+            $this->saveAttachmentsList();
+        } catch (ForbiddenHttpException $e) {
+            $this->emailId = 665;
+            $mailError = new D3pop3EmailError;
+            $mailError->email_id = $this->emailId;
+            $mailError->message = $e->getMessage();
+            if (!$mailError->save()) {
+                echo 'oh oh!';
+            }
+        }
+
 
         $this->saveAttachmentContentList();
     }
