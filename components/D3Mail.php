@@ -773,12 +773,12 @@ class D3Mail
         try {
             $this->saveAttachmentsList();
         } catch (ForbiddenHttpException $e) {
-            $this->emailId = 665;
             $mailError = new D3pop3EmailError;
             $mailError->email_id = $this->emailId;
             $mailError->message = $e->getMessage();
             if (!$mailError->save()) {
-                echo 'oh oh!';
+                Yii::error($e->getMessage());
+                Yii::error($e->getTraceAsString());
             }
         }
 
