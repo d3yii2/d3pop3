@@ -131,7 +131,7 @@ class ReadEmails
                     /** @var IncomingMailAttachment $t */
                     foreach ($msg->getAttachments() as $t) {
                         echo $i . ' A:' . $t->name . PHP_EOL;
-                        $d3mail->addAttachment($t['name'], $t['filePath']);
+                        $d3mail->addAttachment($t->name, $t->filePath);
                     }
                     $d3mail->save();
                     if($cc->getMarkAsRead()) {
