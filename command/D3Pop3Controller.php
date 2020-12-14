@@ -51,8 +51,21 @@ class D3Pop3Controller extends Controller {
         return ExitCode::OK;
     }
 
+    /**
+     * Command for testing LMT post processing
+     * @throws \yii\base\Exception
+     */
+    public function actionComponentTestFunction()
+    {
+        $postProcessingLMT = new \d3yii2\d3pop3\components\DownloadForLMTPostProcessing();
+        $email = \d3yii2\d3pop3\models\D3pop3Email::findOne(['id' => 2126]);
+
+        $postProcessingLMT->run($email);
+    }
+
     private function stdOutLine($text)
     {
         $this->stdout($text . PHP_EOL);
     }
+
 }
