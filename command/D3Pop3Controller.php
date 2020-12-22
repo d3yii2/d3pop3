@@ -55,4 +55,5 @@ class D3Pop3Controller extends Controller {
     {
         $this->stdout($text . PHP_EOL);
     }
+
 }
