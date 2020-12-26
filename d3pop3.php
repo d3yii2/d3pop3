@@ -33,7 +33,7 @@ class d3pop3 extends Module
         $i18n->translations['d3pop3'] = [
             'class'            => 'yii\i18n\PhpMessageSource',
             'sourceLanguage'   => 'en-US',
-            'basePath'         => __DIR__ . '\messages',
+            'basePath'         => __DIR__ . '/messages',
             'forceTranslation' => true
         ];
     }
