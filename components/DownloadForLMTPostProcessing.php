@@ -4,6 +4,7 @@
 namespace d3yii2\d3pop3\components;
 
 
+use d3modules\d3invoices\models\D3cCompany;
 use d3system\helpers\D3FileHelper;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\models\D3pop3Email;
@@ -40,7 +41,7 @@ class DownloadForLMTPostProcessing implements PostProcessingInterface
      * @param D3pop3Email $getD3pop3Email
      * @throws Exception
      */
-    final public function run(D3pop3Email $getD3pop3Email): void
+    final public function run($getD3pop3Email, D3cCompany $company): void
     {
         $isLmt = (bool)strpos($getD3pop3Email->subject, self::LMT_SUBJECT_STRING);
 

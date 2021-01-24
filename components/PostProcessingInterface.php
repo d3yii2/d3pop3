@@ -2,6 +2,7 @@
 
 namespace d3yii2\d3pop3\components;
 
+use d3modules\d3invoices\models\D3cCompany;
 use d3yii2\d3pop3\models\D3pop3Email;
 
 /**
@@ -17,9 +18,9 @@ interface PostProcessingInterface
     public function getName(): string;
 
     /**
-     * @param D3pop3Email $getD3pop3Email
+     * @param $getD3pop3Email
      */
-    public function run(D3pop3Email $getD3pop3Email);
+    public function run($getD3pop3Email, D3cCompany $company);
 
     /**
      * @return string [];
