@@ -54,7 +54,7 @@ class PostProcessingController extends D3CommandController
                     'd3c_company.id = d3pop3_send_receiv.company_id'
                 )
                 ->andWhere([
-                    'd3pop3_send_receiv.in' => D3pop3SendReceiv::DIRECTION_IN,
+                    'd3pop3_send_receiv.direction' => D3pop3SendReceiv::DIRECTION_IN,
                     'd3pop3_send_receiv.email_id' => $getD3pop3Email->id
                 ])
                 ->one();
