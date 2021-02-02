@@ -706,11 +706,8 @@ class D3Mail
         foreach ($this->addressList as $address) {
             $address->email_id = $this->getEmailId();
             if (!$address->save()) {
-                $errors = $address->getErrors();
-                if (isset($errors['email_address'])) {
-                    throw new D3ActiveRecordException($address, null, '', ['email_address']);
-                }
-                throw new D3ActiveRecordException($address);
+                Yii::error(VarDumper::dumpAsString($address->getErrors()));
+                Yii::error(VarDumper::dumpAsString($address->attributes));
             }
         }
     }
