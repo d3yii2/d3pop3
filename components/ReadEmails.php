@@ -38,7 +38,8 @@ class ReadEmails
             $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
             $imapConnection->attachmentsDir = $tempDirectory;
 
-            echo 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')' . PHP_EOL;
+            $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
+            echo $connectionMessage . PHP_EOL;
 
             /**
              * connect to IMAP
@@ -62,7 +63,9 @@ class ReadEmails
 
                 echo 'Messages count:' . count($mailsIds) . PHP_EOL;
             } catch (Exception $e) {
-                $message = 'Container class: ' . $containerClass . '; ; Error: ' . $e->getMessage();
+                $message = 'Container class: ' . $containerClass . PHP_EOL .
+                    'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                    'Error: ' . $e->getMessage();
                 echo $message . PHP_EOL;
                 Yii::error($message);
                 Action::error($cc->getId(), $message);
@@ -144,7 +147,9 @@ class ReadEmails
                     echo PHP_EOL;
                 } catch (Exception $e) {
                     $transaction->rollBack();
-                    $message = 'Container class: ' . $containerClass . '; Error: ' . $e->getMessage();
+                    $message = 'Container class: ' . $containerClass . PHP_EOL .
+                        'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                        'Error: ' . $e->getMessage();
                     echo $message . PHP_EOL;
                     Yii::error($message);
                     Yii::error(VarDumper::export($e->getTrace()));
