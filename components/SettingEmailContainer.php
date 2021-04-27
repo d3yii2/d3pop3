@@ -8,6 +8,7 @@ use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use d3yii2\d3pop3\models\TypeSmtpForm;
 use unyii2\imap\IncomingMail;
+use yii\base\Exception;
 use yii\helpers\Json;
 
 class SettingEmailContainer implements EmailContainerInerface {
@@ -22,7 +23,15 @@ class SettingEmailContainer implements EmailContainerInerface {
     private $record = false;
 
     public function __construct() {
-        $this->data = \Yii::$app->getModule('D3Pop3')->ConfigEmailContainerData;
+        
+        $d3pop3Module = \Yii::$app->getModule('D3Pop3');
+        
+        if (!$d3pop3Module || !is_array($d3pop3Module->ConfigEmailContainerData)) {
+            throw new Exception('D3Pop3 module not configured. Check the README to add the necessary section in config');
+        }
+        
+        
+        $this->data = $d3pop3Module->ConfigEmailContainerData;
     }
 
     /**
