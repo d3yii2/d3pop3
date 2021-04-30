@@ -136,7 +136,7 @@ class D3Mail
      * @param string $bodyHtml
      * @return D3Mail
      */
-    public function setBodyHtml(string $bodyHtml): self
+    public function setBodyHtml(?string $bodyHtml): self
     {
         $this->bodyHtml = $bodyHtml;
         return $this;
