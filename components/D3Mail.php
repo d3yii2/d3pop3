@@ -759,6 +759,7 @@ class D3Mail
 
         try {
             $this->saveAttachmentsList();
+            $this->saveAttachmentContentList();
         } catch (ForbiddenHttpException $e) {
             $mailError = new D3pop3EmailError;
             $mailError->email_id = $this->emailId;
