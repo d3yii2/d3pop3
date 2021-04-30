@@ -3,7 +3,6 @@
 namespace d3yii2\d3pop3\components;
 
 use d3system\exceptions\D3ActiveRecordException;
-use d3yii2\d3files\components\FileHandler;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
@@ -20,16 +19,11 @@ use Html2Text\Html2TextException;
 use ReflectionException;
 use Yii;
 use yii\base\Exception;
-use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\db\Exception as DbException;
 use yii\helpers\VarDumper;
 use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
-use yii\web\NotFoundHttpException;
-use yii2d3\d3emails\logic\Email;
-use yii2d3\d3emails\models\base\D3pop3EmailSignature;
-use yii2d3\d3emails\models\forms\MailForm;
 use yii2d3\d3persons\models\User;
 use d3yii2\d3files\components\D3Files as D3FilesComponent;
 
@@ -142,7 +136,7 @@ class D3Mail
      * @param string $bodyHtml
      * @return D3Mail
      */
-    public function setBodyHtml($bodyHtml): self
+    public function setBodyHtml(string $bodyHtml): self
     {
         $this->bodyHtml = $bodyHtml;
         return $this;
@@ -199,7 +193,7 @@ class D3Mail
     /**
      * @param $fileName
      * @param $filePath
-     * @param string $fileTypes
+     * @param null $model
      * @return $this
      */
     public function addAttachment(
@@ -215,7 +209,7 @@ class D3Mail
     /**
      * @param $fileName
      * @param $content
-     * @param string $fileTypes
+     * @param null $model
      * @return $this
      */
     public function addAttachmentContent(
@@ -519,7 +513,7 @@ class D3Mail
      * @param string $bodyPlain
      * @return $this
      */
-    public function setBodyPlain($bodyPlain): self
+    public function setBodyPlain(string $bodyPlain): self
     {
         $this->bodyPlain = $bodyPlain;
         return $this;
@@ -699,7 +693,6 @@ class D3Mail
     }
 
     /**
-     * @throws D3ActiveRecordException
      */
     public function saveAddressList(): void
     {
@@ -728,7 +721,6 @@ class D3Mail
     /**
      * @return D3Mail
      * @throws Exception
-     * @throws Html2TextException
      * @throws \Exception
      */
     public function createComposed(): self
@@ -756,8 +748,6 @@ class D3Mail
      * Save the relations: D3pop3EmailAddress, D3pop3SendReceiv, D3pop3EmailModel, Attachemnt contents
      * @throws D3ActiveRecordException
      * @throws Exception
-     * @throws ForbiddenHttpException
-     * @throws ReflectionException
      */
     public function saveRelations()
     {
@@ -779,8 +769,6 @@ class D3Mail
             }
         }
 
-
-        $this->saveAttachmentContentList();
     }
 
     /**
@@ -795,7 +783,7 @@ class D3Mail
     /**
      * @param D3pop3EmailAddress $model
      */
-    public function setToAddressList(D3pop3EmailAddress $model)
+    public function setToAddressList(D3pop3EmailAddress $model): void
     {
         $this->addressList[] = $model;
     }
