@@ -30,7 +30,6 @@ use d3yii2\d3files\components\D3Files as D3FilesComponent;
 use function get_class;
 use function in_array;
 use function is_array;
-use function is_int;
 use function strlen;
 
 /**
@@ -133,7 +132,7 @@ class D3Mail
     }
 
     /**
-     * @param string $bodyHtml
+     * @param string|null $bodyHtml
      * @return D3Mail
      */
     public function setBodyHtml(?string $bodyHtml): self
@@ -595,7 +594,7 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function addAddressTo(string $email, $name = null): self
+    public function addAddressTo(string $email, string $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->email_id = $this->getEmailId();
@@ -610,7 +609,6 @@ class D3Mail
      * @throws D3ActiveRecordException
      * @throws Exception
      * @throws ForbiddenHttpException
-     * @throws ReflectionException
      */
     public function save(): void
     {
@@ -693,15 +691,34 @@ class D3Mail
     }
 
     /**
+     * save addresses
      */
     public function saveAddressList(): void
     {
+        $oldAddressList = $this->email->d3pop3EmailAddresses;
+
         foreach ($this->addressList as $address) {
+            /**
+             * existing addresses do not touch
+             */
+            foreach($oldAddressList as $oldAddressKey => $oldAddress){
+                if($oldAddress->address_type === $address->address_type && $oldAddress->email_address === $address->email_address){
+                    unset($oldAddressList[$oldAddressKey],$address);
+                    break;
+                }
+            }
+            if(!isset($address)){
+                continue;
+            }
             $address->email_id = $this->getEmailId();
             if (!$address->save()) {
                 Yii::error(VarDumper::dumpAsString($address->getErrors()));
                 Yii::error(VarDumper::dumpAsString($address->attributes));
             }
+        }
+
+        foreach($oldAddressList as $oldAddress){
+            $oldAddress->delete();
         }
     }
 
@@ -747,9 +764,9 @@ class D3Mail
     /**
      * Save the relations: D3pop3EmailAddress, D3pop3SendReceiv, D3pop3EmailModel, Attachemnt contents
      * @throws D3ActiveRecordException
-     * @throws Exception
+     * @throws Exception|\ReflectionException
      */
-    public function saveRelations()
+    public function saveRelations(): void
     {
         $this->saveAddressList();
 
@@ -794,7 +811,7 @@ class D3Mail
      * @param string|null $name
      * @return $this
      */
-    public function addAddressReply(string $email, $name = null): self
+    public function addAddressReply(string $email, string $name = null): self
     {
         $address = new D3pop3EmailAddress();
         $address->address_type = D3pop3EmailAddress::ADDRESS_TYPE_REPLY;
@@ -809,7 +826,7 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function addAddressCc(string $email, $name = null): ?self
+    public function addAddressCc(string $email, string $name = null): ?self
     {
         if ($this->existsInAddressList($email, [D3pop3EmailAddress::ADDRESS_TYPE_TO])) {
             return null;
@@ -843,7 +860,7 @@ class D3Mail
      * @param string|null $name
      * @return $this|null
      */
-    public function addAddressBcc(string $email, $name = null): ?self
+    public function addAddressBcc(string $email, string $name = null): ?self
     {
         if ($this->existsInAddressList(
             $email,
