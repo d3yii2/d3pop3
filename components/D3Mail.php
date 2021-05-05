@@ -509,10 +509,10 @@ class D3Mail
     }
 
     /**
-     * @param string $bodyPlain
+     * @param string|null $bodyPlain
      * @return $this
      */
-    public function setBodyPlain(string $bodyPlain): self
+    public function setBodyPlain(?string $bodyPlain): self
     {
         $this->bodyPlain = $bodyPlain;
         return $this;
