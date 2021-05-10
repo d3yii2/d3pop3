@@ -95,8 +95,8 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['host'] = $settings['smtpHost']??$settings['host'];
         $this->currentData['user'] = $settings['smtpUser']??$settings['user'];
         $this->currentData['password'] = $settings['smtpPassword']??$settings['password'];
-        $this->currentData['ssl'] = $settings['smtpSsl']??TypeSmtpForm::SSL_ENCRYPTION_NONE;
-        $this->currentData['port'] = (int)($settings['smtpPort']??25);
+        $this->currentData['ssl'] = $settings['smtpSsl']?? $settings['ssl'];
+        $this->currentData['port'] = (int)($settings['smtpPort']?? $settings['port']);
 
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
