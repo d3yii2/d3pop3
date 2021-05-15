@@ -2,12 +2,11 @@
 
 namespace d3yii2\d3pop3\components;
 
-use afinogen89\getmail\message\Message;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
-use d3yii2\d3pop3\models\TypeSmtpForm;
 use unyii2\imap\IncomingMail;
+use Yii;
 use yii\base\Exception;
 use yii\helpers\Json;
 
@@ -24,7 +23,7 @@ class SettingEmailContainer implements EmailContainerInerface {
 
     public function __construct() {
         
-        $d3pop3Module = \Yii::$app->getModule('D3Pop3');
+        $d3pop3Module = Yii::$app->getModule('D3Pop3');
         
         if (!$d3pop3Module || !is_array($d3pop3Module->ConfigEmailContainerData)) {
             throw new Exception('D3Pop3 module not configured. Check the README to add the necessary section in config');
@@ -37,7 +36,8 @@ class SettingEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function featchData() {
+    public function featchData(): bool
+    {
 
         if(!$this->loadedData){
             $this->data = D3pop3ConnectingSettings::find()
@@ -74,11 +74,9 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->record = $dataRow;
         return true;
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function fetchEmailSmtpData($email) {
+
+    public function fetchEmailSmtpData($email): bool
+    {
 
         if(!$this->loadedData){
             $this->data = D3pop3ConnectingSettings::findOneByEmail($email);
@@ -108,7 +106,8 @@ class SettingEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function getPop3ConnectionDetails() {
+    public function getPop3ConnectionDetails(): array
+    {
         return [
                 'host' => $this->currentData['host'],
                 'user' => $this->currentData['user'],
@@ -117,11 +116,9 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'port' => $this->currentData['port'],
         ];
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function getEmailSmtpConnectionDetails() {
+
+    public function getEmailSmtpConnectionDetails(): array
+    {
         return [
                 'host' => $this->currentData['host'],
                 'user' => $this->currentData['user'],
@@ -138,7 +135,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         return '{'
             . $this->currentData['host']
             . ':'
-            . $this->currentData['port']
+            . $this->currentData['smtpPort']
             . '/imap'
             . $ssl
             . $novalidateCert
@@ -171,7 +168,8 @@ class SettingEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function getModelForattach(IncomingMail $msg) {
+    public function getModelForattach(IncomingMail $msg): array
+    {
 
 //        $reflection       = new \ReflectionClass($this->modelName);
 //        $shortModelName = $reflection->getShortName();
