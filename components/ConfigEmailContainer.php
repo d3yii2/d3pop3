@@ -128,4 +128,8 @@ class ConfigEmailContainer implements EmailContainerInerface {
         return $ids;
     }
 
+    public function dumConnectionData(): array
+    {
+        return $this->currentData;
+    }
 }

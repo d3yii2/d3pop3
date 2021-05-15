@@ -33,4 +33,6 @@ interface EmailContainerInerface {
     public function getDeleteAfterDays();
 
     public function setReceiver(D3pop3Email  $email);
+
+    public function dumConnectionData(): array;
 }

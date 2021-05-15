@@ -30,14 +30,24 @@ class ReadEmails
         $tempDirectory = Yii::getAlias('@runtime/temp');
 
         while ($cc->featchData()) {
-
-            $imapConnection = new ImapConnection();
-            $imapConnection->imapPath = $cc->getImapPath();
-            $imapConnection->imapLogin = $cc->getUserName();
-            $imapConnection->imapPassword = $cc->getPassword();
-            $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
-            $imapConnection->attachmentsDir = $tempDirectory;
-
+            try {
+                $imapConnection = new ImapConnection();
+                $imapConnection->imapPath = $cc->getImapPath();
+                $imapConnection->imapLogin = $cc->getUserName();
+                $imapConnection->imapPassword = $cc->getPassword();
+                $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
+                $imapConnection->attachmentsDir = $tempDirectory;
+            } catch (Exception $e){
+                $message = 'Container class: ' . $containerClass . PHP_EOL .
+                    'connectionDetails: ' . VarDumper::dumpAsString($cc->dumConnectionData()) . PHP_EOL .
+                    'Error: ' . $e->getMessage() . PHP_EOL .
+                     $e->getTraceAsString()
+                ;
+                echo $message . PHP_EOL;
+                Yii::error($message);
+                Action::error($cc->getId(), $message);
+                continue;
+            }
             $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
             echo $connectionMessage . PHP_EOL;
 

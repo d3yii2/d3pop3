@@ -59,6 +59,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
         $this->currentData['novalidateCert'] = (int)($settings['novalidateCert']??0);
         $this->currentData['port'] = (int)($settings['port']??993);
+        $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
         $this->currentData['markAsRead'] = $settings['markAsRead']??true;
         $this->currentData['deleteAfterDays'] = (int)($settings['deleteAfterDays']??10);
 
@@ -94,7 +95,8 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['user'] = $settings['smtpUser']??$settings['user'];
         $this->currentData['password'] = $settings['smtpPassword']??$settings['password'];
         $this->currentData['ssl'] = $settings['smtpSsl']?? $settings['ssl'];
-        $this->currentData['port'] = (int)($settings['smtpPort']?? $settings['port']);
+        $this->currentData['port'] = (int)($settings['port']?? 110);
+        $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
 
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
@@ -124,7 +126,7 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'user' => $this->currentData['user'],
                 'password' => $this->currentData['password'],
                 'ssl' => $this->currentData['ssl'],
-                'port' => $this->currentData['port'],
+                'port' => $this->currentData['smtpPort'],
         ];
     }
     
@@ -135,7 +137,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         return '{'
             . $this->currentData['host']
             . ':'
-            . $this->currentData['smtpPort']
+            . $this->currentData['port']
             . '/imap'
             . $ssl
             . $novalidateCert
@@ -193,4 +195,8 @@ class SettingEmailContainer implements EmailContainerInerface {
         $sendReceiv->save();
     }
 
+    public function dumConnectionData(): array
+    {
+        return $this->currentData;
+    }
 }
