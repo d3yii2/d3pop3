@@ -13,7 +13,7 @@ class d3pop3 extends Module
     
     public $EmailContainers = [];
 
-
+    public $forceUseFileTransport = false;
     /**
      * define post processing objects with
      * interface d3yii2\d3pop3\components\PostProcessingInterface

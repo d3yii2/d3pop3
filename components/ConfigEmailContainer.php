@@ -5,6 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
 use unyii2\imap\IncomingMail;
+use Yii;
 
 class ConfigEmailContainer implements EmailContainerInerface {
 
@@ -15,13 +16,14 @@ class ConfigEmailContainer implements EmailContainerInerface {
     public $serachByEmailField;
 
     public function __construct() {
-        $this->data = \Yii::$app->getModule('D3Pop3')->ConfigEmailContainerData;
+        $this->data = Yii::$app->getModule('D3Pop3')->ConfigEmailContainerData;
     }
 
     /**
      * @inheritdoc
      */
-    public function featchData() {
+    public function featchData(): bool
+    {
         if (!$this->data) {
             return false;
         }
@@ -35,7 +37,8 @@ class ConfigEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function getPop3ConnectionDetails() {
+    public function getPop3ConnectionDetails(): array
+    {
         return
                 [
                     'host' => $this->currentData['host'],
@@ -45,7 +48,8 @@ class ConfigEmailContainer implements EmailContainerInerface {
         ];
     }
     
-    public function getImapPath(){
+    public function getImapPath(): string
+    {
         return '{' . $this->currentData['host'] . ':993/imap/ssl}INBOX';
     }
 
@@ -57,7 +61,7 @@ class ConfigEmailContainer implements EmailContainerInerface {
         return $this->currentData['password'];
     }
 
-    public function setReceiver(D3pop3Email $email)
+    public function setReceiver(D3pop3Email $email): void
     {
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->email_id = $email->id;
@@ -85,7 +89,8 @@ class ConfigEmailContainer implements EmailContainerInerface {
     /**
      * @inheritdoc
      */
-    public function getModelForattach(IncomingMail $msg) {
+    public function getModelForattach(IncomingMail $msg): array
+    {
         
         switch ($this->serachByEmailField) {
             case 'from':
