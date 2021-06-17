@@ -34,6 +34,7 @@ class D3pop3ConnectingSmtpSettings extends D3pop3ConnectingSettings
                 self::TYPE_GMAIL,
                 self::TYPE_IMAP,
                 self::TYPE_SMTP,
+                self::TYPE_MICROSOFT_OFFICE_365,
             ]
             ],
         ];
