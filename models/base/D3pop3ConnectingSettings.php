@@ -38,6 +38,8 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
     const TYPE_GMAIL = 'gmail';
     const TYPE_IMAP = 'imap';
     const TYPE_SMTP = 'smtp';
+    const TYPE_MICROSOFT_OFFICE_365 = 'office365';
+    
     public $enum_labels = false;
     /**
      * @inheritdoc
@@ -158,6 +160,7 @@ abstract class D3pop3ConnectingSettings extends \yii\db\ActiveRecord
             self::TYPE_GMAIL => Yii::t('d3pop3', self::TYPE_GMAIL),
             self::TYPE_IMAP => Yii::t('d3pop3', self::TYPE_IMAP),
             self::TYPE_SMTP => Yii::t('d3pop3', self::TYPE_SMTP),
+            self::TYPE_MICROSOFT_OFFICE_365 => Yii::t('d3pop3', self::TYPE_MICROSOFT_OFFICE_365),
         ];
     }
 
