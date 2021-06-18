@@ -118,7 +118,11 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'port' => $this->currentData['port'],
         ];
     }
-
+    
+    /**
+     * @return array
+     * @TODO - apvienot ar getPop3ConnectionDetails (vienādi lauki)
+     */
     public function getEmailSmtpConnectionDetails(): array
     {
         return [
@@ -126,7 +130,7 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'user' => $this->currentData['user'],
                 'password' => $this->currentData['password'],
                 'ssl' => $this->currentData['ssl'],
-                'port' => $this->currentData['smtpPort'],
+                'port' => $this->currentData['port'],
         ];
     }
     
