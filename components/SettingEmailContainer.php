@@ -130,7 +130,7 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'user' => $this->currentData['user'],
                 'password' => $this->currentData['password'],
                 'ssl' => $this->currentData['ssl'],
-                'port' => $this->currentData['port'],
+                'port' => $this->currentData['smtpPort'],
         ];
     }
     
