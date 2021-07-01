@@ -25,21 +25,21 @@ class TypeSmtpForm extends Model
     public $ssl;
 
     /** @var int */
-    public $port;
+    public $smtpPort;
     
     public function init()
     {
         parent::init();
-        $this->port = 587;
+        $this->smtpPort = 587;
         $this->ssl = self::SSL_ENCRYPTION_NONE;
     }
 
     public function rules()
     {
         return [
-            [['host', 'port', 'ssl'], 'required'],
+            [['host', 'smtpPort', 'ssl'], 'required'],
             [['host', 'user', 'password'], 'string'],
-            [['port'], 'integer'],
+            [['smtpPort'], 'integer'],
             ['ssl', 'in', 'range' => [self::SSL_ENCRYPTION_NONE, self::SSL_ENCRYPTION_SSL, self::SSL_ENCRYPTION_TLS]],
 
         ];
@@ -52,7 +52,7 @@ class TypeSmtpForm extends Model
             'user' => \Yii::t('d3pop3', 'User Name'),
             'password' => \Yii::t('d3pop3', 'Password'),
             'ssl' => \Yii::t('d3pop3', 'Use SSL'),
-            'port' => \Yii::t('d3pop3', 'Port'),
+            'smtpPort' => \Yii::t('d3pop3', 'Port'),
         ];
     }
 

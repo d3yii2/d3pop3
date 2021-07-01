@@ -14,7 +14,7 @@ class TypeGmailForm extends TypeImapForm
         $this->user = $this->user;
         $this->password = $this->password;
         $this->ssl = true;
-        $this->port = 993;
+        $this->smtpPort = 993;
         $this->directory = 'INBOX';
     }
 
