@@ -57,6 +57,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['user'] = $settings['user'];
         $this->currentData['password'] = $settings['password'];
         $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
+        $this->currentData['imapSsl'] = $settings['imapSsl']??false;
         $this->currentData['novalidateCert'] = (int)($settings['novalidateCert']??0);
         $this->currentData['port'] = (int)($settings['port']??993);
         $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
@@ -136,7 +137,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     
     public function getImapPath(): string
     {
-        $ssl = $this->currentData['ssl']?'/ssl':'';
+        $ssl = $this->currentData['imapSsl'] ? '/' . $this->currentData['imapSsl'] : '';
         $novalidateCert = $this->currentData['novalidateCert']?'/novalidate-cert':'';
         return '{'
             . $this->currentData['host']

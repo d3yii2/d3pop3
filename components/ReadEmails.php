@@ -2,6 +2,7 @@
 
 namespace d3yii2\d3pop3\components;
 
+use d3system\helpers\D3FileHelper;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use DateTime;
 use Exception;
@@ -27,7 +28,7 @@ class ReadEmails
 
         $error = false;
 
-        $tempDirectory = Yii::getAlias('@runtime/temp');
+        $tempDirectory = D3FileHelper::getRuntimeDirectoryPath('imaptemp');
 
         while ($cc->featchData()) {
             try {
@@ -37,7 +38,7 @@ class ReadEmails
                 $imapConnection->imapPassword = $cc->getPassword();
                 $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
                 $imapConnection->attachmentsDir = $tempDirectory;
-            } catch (Exception $e){
+            } catch (Exception $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
                     'connectionDetails: ' . VarDumper::dumpAsString($cc->dumConnectionData()) . PHP_EOL .
                     'Error: ' . $e->getMessage() . PHP_EOL .
