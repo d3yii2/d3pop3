@@ -717,8 +717,9 @@ class D3Mail
             }
             $address->email_id = $this->getEmailId();
             if (!$address->save()) {
-                Yii::error(VarDumper::dumpAsString($address->getErrors()));
-                Yii::error(VarDumper::dumpAsString($address->attributes));
+                Yii::error(VarDumper::dumpAsString($address->getErrors())
+                    . PHP_EOL . VarDumper::dumpAsString($address->attributes));
+
             }
         }
 
