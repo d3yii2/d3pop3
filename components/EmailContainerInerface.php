@@ -2,11 +2,15 @@
 
 namespace d3yii2\d3pop3\components;
 
-use afinogen89\getmail\message\Message;
 use d3yii2\d3pop3\models\D3pop3Email;
 use unyii2\imap\IncomingMail;
 
-interface EmailContainerInerface {
+/**
+ * @property array $settings
+ * @property int $recordId
+ */
+interface EmailContainerInerface
+{
 
     /**
      * set next pop3 box
@@ -20,7 +24,7 @@ interface EmailContainerInerface {
 
     /**
      * get recird primary key value, where attach email
-     * @param \app\components\D3pop3Email $emailModel
+     * @param IncomingMail $msg
      * @return array list of primary key and model name
      */
     public function getModelForattach(IncomingMail $msg);
@@ -35,4 +39,5 @@ interface EmailContainerInerface {
     public function setReceiver(D3pop3Email  $email);
 
     public function dumConnectionData(): array;
+    public function getSettingClass(): ConnectionInterface;
 }

@@ -5,6 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
+use unyii2\imap\ImapConnection;
 use unyii2\imap\IncomingMail;
 use Yii;
 use yii\base\Exception;
@@ -20,8 +21,17 @@ class SettingEmailContainer implements EmailContainerInerface {
     private $loadedData = false;
 
     private $record = false;
+    /**
+     * @var array
+     */
+    private $settings;
+    /**
+     * @var int
+     */
+    public $recordId;
 
-    public function __construct() {
+    public function __construct()
+    {
         
         $d3pop3Module = Yii::$app->getModule('D3Pop3');
         
@@ -39,7 +49,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     public function featchData(): bool
     {
 
-        if(!$this->loadedData){
+        if (!$this->loadedData) {
             $this->data = D3pop3ConnectingSettings::find()
                 ->where(['deleted' => 0])
                 ->all();
@@ -51,24 +61,8 @@ class SettingEmailContainer implements EmailContainerInerface {
         }
         /** @var D3pop3ConnectingSettings $dataRow */
         $dataRow = array_shift($this->data);
-        $settings = Json::decode($dataRow->settings);
-        $this->currentData['id'] = $dataRow->id;
-        $this->currentData['host'] = $settings['host'];
-        $this->currentData['user'] = $settings['user'];
-        $this->currentData['password'] = $settings['password'];
-        $this->currentData['ssl'] = (int)$settings['ssl']?'SSL':'';
-        $this->currentData['imapSsl'] = $settings['imapSsl']??false;
-        $this->currentData['novalidateCert'] = (int)($settings['novalidateCert']??0);
-        $this->currentData['port'] = (int)($settings['port']??993);
-        $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
-        $this->currentData['markAsRead'] = $settings['markAsRead']??true;
-        $this->currentData['deleteAfterDays'] = (int)($settings['deleteAfterDays']??10);
-
-        if(isset($settings['directory'])) {
-            $this->currentData['directory'] = $settings['directory'];
-        } else {
-            $this->currentData['directory'] = 'INBOX';
-        }
+        $this->settings = Json::decode($dataRow->settings);
+        $this->recordId = $dataRow->id;
 
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
@@ -80,7 +74,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     public function fetchEmailSmtpData($email): bool
     {
 
-        if(!$this->loadedData){
+        if (!$this->loadedData) {
             $this->data = D3pop3ConnectingSettings::findOneByEmail($email);
             $this->loadedData = true;
         }
@@ -90,14 +84,8 @@ class SettingEmailContainer implements EmailContainerInerface {
         }
         /** @var D3pop3ConnectingSettings $dataRow */
         $dataRow = $this->data;
-        $settings = Json::decode($dataRow->settings);
-        $this->currentData['id'] = $dataRow->id;
-        $this->currentData['host'] = $settings['smtpHost']??$settings['host'];
-        $this->currentData['user'] = $settings['smtpUser']??$settings['user'];
-        $this->currentData['password'] = $settings['smtpPassword']??$settings['password'];
-        $this->currentData['ssl'] = $settings['smtpSsl']?? $settings['ssl'];
-        $this->currentData['port'] = (int)($settings['port']?? 110);
-        $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
+        $this->settings = Json::decode($dataRow->settings);
+        $this->recordId = $dataRow->id;
 
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
@@ -108,6 +96,7 @@ class SettingEmailContainer implements EmailContainerInerface {
 
     /**
      * @inheritdoc
+     * @deprecated
      */
     public function getPop3ConnectionDetails(): array
     {
@@ -122,54 +111,33 @@ class SettingEmailContainer implements EmailContainerInerface {
     
     /**
      * @return array
-     * @TODO - apvienot ar getPop3ConnectionDetails (vienādi lauki)
      */
     public function getEmailSmtpConnectionDetails(): array
     {
-        return [
-                'host' => $this->currentData['host'],
-                'user' => $this->currentData['user'],
-                'password' => $this->currentData['password'],
-                'ssl' => $this->currentData['ssl'],
-                'port' => $this->currentData['smtpPort'],
-        ];
+        $settingClass = $this->getSettingClass();
+        return $settingClass->createSwiftMailerTransportConfig();
     }
-    
-    public function getImapPath(): string
+
+    public function getEmailImapConnectionDetails(): ImapConnection
     {
-        $ssl = $this->currentData['imapSsl'] ? '/' . $this->currentData['imapSsl'] : '';
-        $novalidateCert = $this->currentData['novalidateCert']?'/novalidate-cert':'';
-        return '{'
-            . $this->currentData['host']
-            . ':'
-            . $this->currentData['port']
-            . '/imap'
-            . $ssl
-            . $novalidateCert
-            . '}'
-            . $this->currentData['directory'];
+        $settingClass = $this->getSettingClass();
+        return $settingClass->createImapConnection();
     }
 
-    public function getUserName(){
-        return $this->currentData['user'];
-    }
 
-    public function getPassword(){
-        return $this->currentData['password'];
-    }
-
-    public function getId(){
-        return $this->currentData['id'];
+    public function getId(): int
+    {
+        return $this->recordId;
     }
 
     public function getMarkAsRead()
     {
-        return $this->currentData['markAsRead'];
+        return $this->settings['markAsRead'] ?? false;
     }
 
     public function getDeleteAfterDays()
     {
-        return $this->currentData['deleteAfterDays'];
+        return $this->settings['deleteAfterDays'] ?? 10;
     }
 
     /**
@@ -200,8 +168,33 @@ class SettingEmailContainer implements EmailContainerInerface {
         $sendReceiv->save();
     }
 
+    /**
+     * @return \d3yii2\d3pop3\components\ConnectionInterface
+     */
+    public function getSettingClass(): ConnectionInterface
+    {
+        $settingClassName = $this->settings['class'] ?? ConnectionDefault::class;
+        /** @var \d3yii2\d3pop3\components\ConnectionInterface $settingClass */
+        return new $settingClassName($this->recordId, $this->settings);
+    }
+
+    public function getImapPath()
+    {
+        // TODO: Implement getImapPath() method.
+    }
+
+    public function getUserName()
+    {
+        // TODO: Implement getUserName() method.
+    }
+
+    public function getPassword()
+    {
+        // TODO: Implement getPassword() method.
+    }
+
     public function dumConnectionData(): array
     {
-        return $this->currentData;
+        // TODO: Implement dumConnectionData() method.
     }
 }
