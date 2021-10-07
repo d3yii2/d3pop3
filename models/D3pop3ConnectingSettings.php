@@ -3,7 +3,7 @@
 namespace d3yii2\d3pop3\models;
 
 use d3yii2\d3pop3\components\Action;
-use \d3yii2\d3pop3\models\base\D3pop3ConnectingSettings as BaseD3pop3ConnectingSettings;
+use d3yii2\d3pop3\models\base\D3pop3ConnectingSettings as BaseD3pop3ConnectingSettings;
 use Yii;
 use yii\web\Application;
 
@@ -65,10 +65,12 @@ class D3pop3ConnectingSettings extends BaseD3pop3ConnectingSettings
         return parent::find();
     }
 
-
     public static function  findOneByEmail(string $email)
     {
-        return self::findOne(['email'=>$email]);
+        return self::findOne([
+            'email'=>$email,
+            'deleted' => 0
+        ]);
     }
 
     public function getSettings()
