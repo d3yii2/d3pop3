@@ -19,6 +19,7 @@ class SettingEmailContainer implements EmailContainerInerface {
     public $serachByEmailField;
     private $loadedData = false;
 
+    /** @var D3pop3ConnectingSettings|bool  */
     private $record = false;
 
     public function __construct() {
@@ -183,7 +184,7 @@ class SettingEmailContainer implements EmailContainerInerface {
 
         return [
             [
-                'id' => $this->record->sys_company_id,
+                'id' => $this->getSysCompanyId(),
                 'model_name' => $this->modelName,
             ]
         ];
@@ -194,7 +195,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->email_id = $email->id;
         $sendReceiv->direction = D3pop3SendReceiv::DIRECTION_IN;
-        $sendReceiv->company_id = $this->record->sys_company_id;
+        $sendReceiv->company_id = $this->getSysCompanyId();
         $sendReceiv->setting_id = $this->record->id;
         $sendReceiv->status = D3pop3SendReceiv::STATUS_NEW;
         $sendReceiv->save();
@@ -203,5 +204,10 @@ class SettingEmailContainer implements EmailContainerInerface {
     public function dumConnectionData(): array
     {
         return $this->currentData;
+    }
+
+    public function getSysCompanyId()
+    {
+        return $this->record->sys_company_id;
     }
 }

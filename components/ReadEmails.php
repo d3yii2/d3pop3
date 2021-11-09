@@ -31,6 +31,9 @@ class ReadEmails
         $tempDirectory = D3FileHelper::getRuntimeDirectoryPath('imaptemp');
 
         while ($cc->featchData()) {
+            if (Yii::$app->has('SysCmp') && $sysCompanyId = $cc->getSysCompanyId()) {
+                Yii::$app->SysCmp->setActiveId($sysCompanyId);
+            }
             try {
                 $imapConnection = new ImapConnection();
                 $imapConnection->imapPath = $cc->getImapPath();

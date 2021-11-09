@@ -35,4 +35,6 @@ interface EmailContainerInerface {
     public function setReceiver(D3pop3Email  $email);
 
     public function dumConnectionData(): array;
+
+    public function getSysCompanyId();
 }
