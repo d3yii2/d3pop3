@@ -12,9 +12,12 @@ class D3pop3EmailAddress extends BaseD3pop3EmailAddress
 
     public function rules()
     {
-        return array_merge(parent::rules(), [
-            ['email_address','trim']
-        ]);
+        return array_merge(
+            [
+                ['email_address','trim']
+            ],
+            parent::rules()
+        );
     }
 
     /**
