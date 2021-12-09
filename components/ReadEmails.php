@@ -22,6 +22,8 @@ class ReadEmails
      * @param $containerClass
      * @return bool
      * @throws \unyii2\imap\Exception
+     * @throws \yii\base\Exception
+     * @throws \yii\db\Exception
      */
     public static function readImap(EmailContainerInerface $cc, $containerClass)
     {
@@ -163,10 +165,10 @@ class ReadEmails
                     $transaction->rollBack();
                     $message = 'Container class: ' . $containerClass . PHP_EOL .
                         'connectionDetails: ' . $connectionMessage . PHP_EOL .
-                        'Error: ' . $e->getMessage();
+                        'Error: ' . $e->getMessage()
+                    ;
                     echo $message . PHP_EOL;
-                    Yii::error($message);
-                    Yii::error(VarDumper::export($e->getTrace()));
+                    Yii::error($message . PHP_EOL . $e->getTraceAsString());
                     Action::error($cc->getId(), $message);
                     continue;
                 }
