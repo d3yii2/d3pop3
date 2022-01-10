@@ -199,7 +199,9 @@ class D3Mail
         $filePath,
         $model = null
     ): self {
-        $this->attachmentList[] = compact('fileName', 'filePath', 'model');
+        if (trim($filePath)) {
+            $this->attachmentList[] = compact('fileName', 'filePath', 'model');
+        }
 
         return $this;
     }
@@ -671,7 +673,7 @@ class D3Mail
             $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
             $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
             $fileTypes = D3FilesComponent::getAllowedFileTypes($modelClass);
-            
+
             D3files::saveFile(
                 $attachment['fileName'],
                 $modelClass,
