@@ -674,6 +674,13 @@ class D3Mail
             $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
             $fileTypes = D3FilesComponent::getAllowedFileTypes($modelClass);
 
+            /**
+             * ignore files without extensions
+             */
+            $path = pathinfo($attachment['fileName']);
+            if (!$path['extension']) {
+                continue;
+            }
             D3files::saveFile(
                 $attachment['fileName'],
                 $modelClass,
