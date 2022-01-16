@@ -257,6 +257,7 @@ class D3Mail
 
     /**
      * @return bool
+     * @throws \yii\base\InvalidConfigException
      */
     public function send(): bool
     {
