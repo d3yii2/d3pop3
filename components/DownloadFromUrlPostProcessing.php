@@ -33,7 +33,7 @@ class DownloadFromUrlPostProcessing implements PostProcessingInterface
      * @param D3pop3Email $getD3pop3Email
      * @throws Exception
      */
-    final public function run($getD3pop3Email, D3cCompany $company): void
+    final public function run($getD3pop3Email, object $company): void
     {
 
         $this->messages = [];

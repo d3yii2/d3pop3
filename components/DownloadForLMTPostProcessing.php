@@ -24,8 +24,8 @@ use yii\helpers\FileHelper;
 class DownloadForLMTPostProcessing implements PostProcessingInterface
 {
 
-    CONST DOWNLOAD_URL  = 'https://pay.lmt.lv/lv/bill/getPdf';
-    CONST LMT_SUBJECT_STRING  = 'LMT rēķina informācija';
+    public CONST DOWNLOAD_URL  = 'https://pay.lmt.lv/lv/bill/getPdf';
+    public CONST LMT_SUBJECT_STRING  = 'LMT rēķina informācija';
 
     /**
      * @var string[]
@@ -41,7 +41,7 @@ class DownloadForLMTPostProcessing implements PostProcessingInterface
      * @param D3pop3Email $getD3pop3Email
      * @throws Exception
      */
-    final public function run($getD3pop3Email, D3cCompany $company): void
+    final public function run($getD3pop3Email, object $company): void
     {
         $isLmt = (bool)strpos($getD3pop3Email->subject, self::LMT_SUBJECT_STRING);
 

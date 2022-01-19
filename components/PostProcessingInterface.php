@@ -4,6 +4,7 @@ namespace d3yii2\d3pop3\components;
 
 use d3modules\d3invoices\models\D3cCompany;
 use d3yii2\d3pop3\models\D3pop3Email;
+use phpDocumentor\Reflection\Types\Object_;
 
 /**
  * Interface PostProcessingInterface
@@ -19,8 +20,9 @@ interface PostProcessingInterface
 
     /**
      * @param $getD3pop3Email
+     * @param object $company
      */
-    public function run($getD3pop3Email, D3cCompany $company);
+    public function run($getD3pop3Email, object $company);
 
     /**
      * @return string [];
