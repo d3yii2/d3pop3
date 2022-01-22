@@ -3,7 +3,7 @@
 namespace d3yii2\d3pop3\models;
 
 
-use \d3yii2\d3pop3\models\base\D3pop3Email as BaseD3pop3Email;
+use d3yii2\d3pop3\models\base\D3pop3Email as BaseD3pop3Email;
 use Yii;
 
 /**
@@ -12,7 +12,7 @@ use Yii;
 class D3pop3Email extends BaseD3pop3Email
 {
 
-    const D3FILES_ALLOWED_EXT_REGEXP = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip)$/i';
+    public const D3FILES_ALLOWED_EXT_REGEXP = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip|odt)$/i';
 
     public function delete()
     {
