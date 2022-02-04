@@ -3,6 +3,7 @@
 namespace d3yii2\d3pop3\components;
 
 use d3system\exceptions\D3ActiveRecordException;
+use d3system\exceptions\D3UserAlertException;
 use d3yii2\d3files\models\D3files;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
@@ -727,9 +728,7 @@ class D3Mail
             }
             $address->email_id = $this->getEmailId();
             if (!$address->save()) {
-                Yii::error(VarDumper::dumpAsString($address->getErrors())
-                    . PHP_EOL . VarDumper::dumpAsString($address->attributes));
-
+                throw new D3UserAlertException($address->getFirstError('email_address'));
             }
         }
 
