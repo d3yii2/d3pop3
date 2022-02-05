@@ -80,7 +80,8 @@ class ReadEmails
                 echo 'Messages count:' . count($mailsIds) . PHP_EOL;
             } catch (Exception $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
-                    'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                    'connectionMessage: ' . $connectionMessage . PHP_EOL .
+                    'Details: ' . print_r($cc->currentData, true) . PHP_EOL .
                     'Error: ' . $e->getMessage();
                 echo $message . PHP_EOL;
                 Yii::error($message);
