@@ -23,7 +23,8 @@ class SettingEmailContainer implements EmailContainerInerface {
     private $record = false;
 
     public function __construct() {
-        
+
+        /** @var \d3yii2\d3pop3\d3pop3 $d3pop3Module */
         $d3pop3Module = Yii::$app->getModule('D3Pop3');
         
         if (!$d3pop3Module || !is_array($d3pop3Module->ConfigEmailContainerData)) {
@@ -42,7 +43,7 @@ class SettingEmailContainer implements EmailContainerInerface {
 
         if(!$this->loadedData){
             $this->data = D3pop3ConnectingSettings::find()
-                ->where(['deleted' => 0])
+                ->andWhere(['deleted' => 0])
                 ->all();
             $this->loadedData = true;
         }
@@ -190,7 +191,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         ];
     }
 
-    public function setReceiver(D3pop3Email $email)
+    public function setReceiver(D3pop3Email $email): void
     {
         $sendReceiv = new D3pop3SendReceiv();
         $sendReceiv->email_id = $email->id;
@@ -206,7 +207,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         return $this->currentData;
     }
 
-    public function getSysCompanyId()
+    public function getSysCompanyId(): int
     {
         return $this->record->sys_company_id;
     }

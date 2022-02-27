@@ -19,13 +19,14 @@ class ReadEmails
 
     /**
      * @param EmailContainerInerface $cc
-     * @param $containerClass
+     * @param string $containerClass
+     * @param bool $debug
      * @return bool
      * @throws \unyii2\imap\Exception
      * @throws \yii\base\Exception
      * @throws \yii\db\Exception
      */
-    public static function readImap(EmailContainerInerface $cc, $containerClass)
+    public static function readImap(EmailContainerInerface $cc, string $containerClass, bool $debug = true)
     {
 
         $error = false;
@@ -49,13 +50,17 @@ class ReadEmails
                     'Error: ' . $e->getMessage() . PHP_EOL .
                      $e->getTraceAsString()
                 ;
-                echo $message . PHP_EOL;
+                if ($debug) {
+                    echo $message . PHP_EOL;
+                }
                 Yii::error($message);
                 Action::error($cc->getId(), $message);
                 continue;
             }
-            $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
-            echo $connectionMessage . PHP_EOL;
+            if ($debug) {
+                $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
+                echo $connectionMessage . PHP_EOL;
+            }
 
             /**
              * connect to IMAP
@@ -73,17 +78,22 @@ class ReadEmails
                     $mailsIds = $mailbox->searchMailbox();
                 }
                 if (!$mailsIds) {
-                    echo 'Mailbox is empty' . PHP_EOL;
+                    if ($debug) {
+                        echo 'Mailbox is empty' . PHP_EOL;
+                    }
                     continue;
                 }
-
-                echo 'Messages count:' . count($mailsIds) . PHP_EOL;
+                if ($debug) {
+                    echo 'Messages count:' . count($mailsIds) . PHP_EOL;
+                }
             } catch (Exception $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
                     'connectionMessage: ' . $connectionMessage . PHP_EOL .
                     'Details: ' . print_r($cc->currentData, true) . PHP_EOL .
                     'Error: ' . $e->getMessage();
-                echo $message . PHP_EOL;
+                if ($debug) {
+                    echo $message . PHP_EOL;
+                }
                 Yii::error($message);
                 Action::error($cc->getId(), $message);
                 continue;
@@ -92,16 +102,22 @@ class ReadEmails
             foreach ($mailsIds as $i => $mailId) {
 
                 $msg = $mailbox->getMail($mailId);
-                echo $i . ' Subject:' . $msg->subject . PHP_EOL;
-                echo $i . ' Date:' . $msg->date . PHP_EOL;
-                echo $i . ' MessageId:' . $msg->messageId . PHP_EOL;
+                if ($debug) {
+                    echo $i . ' Subject:' . $msg->subject . PHP_EOL;
+                    echo $i . ' Date:' . $msg->date . PHP_EOL;
+                    echo $i . ' MessageId:' . $msg->messageId . PHP_EOL;
+                }
 
                 if (D3pop3Email::findOne(['email_id' => $msg->messageId])) {
-                    echo $i . ' Message already loaded' . PHP_EOL;
+                    if ($debug) {
+                        echo $i . ' Message already loaded' . PHP_EOL;
+                    }
                     $nowDate = new DateTime();
                     $msgDate = new DateTime($msg->date);
                     if($nowDate->diff($msgDate)->format('%a') > $cc->getDeleteAfterDays()){
-                        echo $i . ' Delete message (expire days = '.$cc->getDeleteAfterDays().') ' . PHP_EOL;
+                        if ($debug) {
+                            echo $i . ' Delete message (expire days = ' . $cc->getDeleteAfterDays() . ') ' . PHP_EOL;
+                        }
                         $mailbox->deleteMail($mailId);
                         $expungeMails = true;
                     }
@@ -148,7 +164,6 @@ class ReadEmails
                         $d3mail->addAddressTo($rtEmail, $rtName);
                     }
 
-                    /** @var IncomingMailAttachment $t */
                     foreach ($msg->getAttachments() as $t) {
                         echo $i . ' A:' . $t->name . PHP_EOL;
                         $d3mail->addAttachment($t->name, $t->filePath);
@@ -168,7 +183,9 @@ class ReadEmails
                         'connectionDetails: ' . $connectionMessage . PHP_EOL .
                         'Error: ' . $e->getMessage()
                     ;
-                    echo $message . PHP_EOL;
+                    if ($debug) {
+                        echo $message . PHP_EOL;
+                    }
                     Yii::error($message . PHP_EOL . $e->getTraceAsString());
                     Action::error($cc->getId(), $message);
                     continue;
