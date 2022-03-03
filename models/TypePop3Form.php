@@ -6,6 +6,9 @@ class TypePop3Form extends TypeImapForm
 {
     public $mailbox;
 
+    /** @var string */
+    public $imapSsl;
+
     public function init()
     {}
 
@@ -14,7 +17,7 @@ class TypePop3Form extends TypeImapForm
         return [
             [['mailbox', 'password'], 'required'],
             //[['host'], 'required'],
-            [['mailbox', 'host', 'password'], 'string'],
+            [['mailbox', 'host', 'password', 'imapSsl'], 'string'],
             [['mailbox'], 'safe'],
         ];
     }
