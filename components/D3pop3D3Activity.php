@@ -6,6 +6,7 @@ namespace d3yii2\d3pop3\components;
 use d3yii2\d3activity\components\ActivityRecord;
 use d3yii2\d3activity\components\ModelActivityInterface;
 use d3yii2\d3pop3\models\D3pop3Email;
+use Yii;
 
 class D3pop3D3Activity implements ModelActivityInterface
 {
@@ -30,6 +31,7 @@ class D3pop3D3Activity implements ModelActivityInterface
             $record = new ActivityRecord();
             $record->recordId = $email->id;
             $record->label = $email->from . ' --- ' .$email->subject;
+            $record->name = Yii::t('d3pop3','Email');
             $record->url = [
                 '/d3emails/email/view',
                 'id' => $email->id,
