@@ -57,8 +57,9 @@ class ReadEmails
                 Action::error($cc->getId(), $message);
                 continue;
             }
+
+            $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
             if ($debug) {
-                $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
                 echo $connectionMessage . PHP_EOL;
             }
 
