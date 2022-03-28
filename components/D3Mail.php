@@ -509,7 +509,7 @@ class D3Mail
             ->setFromEmail($settings->email)
             ->setFromName(Yii::$app->person->firstName . ' ' . Yii::$app->person->lastName)
             ->addSendReceiveOutFromCompany(0, D3pop3SendReceiv::STATUS_DRAFT)
-            ->addAddressReply($this->email->from, $this->email->from_name);
+            ->addAddressTo($this->email->from, $this->email->from_name);
 
         $replyD3Mail->save();
 
