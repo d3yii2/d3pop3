@@ -679,7 +679,7 @@ class D3Mail
              * ignore files without extensions
              */
             $path = pathinfo($attachment['fileName']);
-            if (!$path['extension']) {
+            if (!isset($path['extension'])) {
                 continue;
             }
             D3files::saveFile(
