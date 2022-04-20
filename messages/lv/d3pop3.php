@@ -15,7 +15,6 @@
  * of the guide for details.
  *
  * NOTE: this file must be saved in UTF-8 encoding.
- * @deprecated - duplicate of lv/d3pop3
  */
 return [
     'Address type' => 'Adreses tips',
