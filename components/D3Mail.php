@@ -544,7 +544,7 @@ class D3Mail
     private function getPlainBody(): string
     {
         if (!$this->email->body) {
-            return $this->email->body_plain;
+            return $this->email->body_plain ?? '';
         }
 
         $convertedBody = Html2Text::convert($this->email->body, true);
