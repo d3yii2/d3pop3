@@ -408,7 +408,7 @@ class D3Mail
                 date('YmdHis'),
             ])
             ->setFromEmail($email)
-            ->setFromName($fromList[$email])
+            ->setFromName($fromList[$email] ?? $email)
             ->addSendReceiveOutFromCompany();
     }
 
