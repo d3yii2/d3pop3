@@ -23,7 +23,6 @@ use yii\base\Exception;
 use yii\db\ActiveRecord;
 use yii\db\Exception as DbException;
 use yii\helpers\VarDumper;
-use yii\swiftmailer\Message;
 use yii\web\ForbiddenHttpException;
 use yii2d3\d3persons\models\User;
 use d3yii2\d3files\components\D3Files as D3FilesComponent;
@@ -305,7 +304,6 @@ class D3Mail
                 }
             }
             try {
-                /** @var Message $message */
                 $message = Yii::$app->mailer->compose()
                     ->setFrom($this->email->from)
                     ->setSubject($this->email->subject);
