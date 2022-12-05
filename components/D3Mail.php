@@ -277,29 +277,27 @@ class D3Mail
                     $smtpConfig = $settingEmailContainer->getEmailSmtpConnectionDetails();
 
                     if ($smtpConfig) {
-                        $tranportConfig = [
-                            'class' => 'Swift_SmtpTransport',
-                            'host' => $smtpConfig['host'],
-                            'port' => $smtpConfig['port'],
+                        $dsn = 'smtp://';
+                        $transportSymfonymailer = [
+                            'useFileTransport' => false
                         ];
 
                         if (!empty($smtpConfig['user'])) {
-                            $tranportConfig['username'] = $smtpConfig['user'];
+                            $dsn .= $smtpConfig['user'];
                         }
 
                         if (!empty($smtpConfig['password'])) {
-                            $tranportConfig['password'] = $smtpConfig['password'];
+                            $dsn .= ':' . $smtpConfig['password'];
                         }
-
+                        $dsn .= '@' . $smtpConfig['host'] . ':' . $smtpConfig['port'];
                         if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
-                            $tranportConfig['encryption'] = $smtpConfig['ssl'];
-
-                            //@FIXME - should be self signed certificates supported?
-                            //\Yii::$app->mailer->setStreamOptions(
-                            //['ssl' => ['allow_self_signed' => true, 'verify_peer' => false]]);
+                            $dsn .= '';
+                        } else {
+                            /** neizmanto ssl/tsl */
+                            $dsn .= '?verify_peer=0';
                         }
-
-                        Yii::$app->mailer->setTransport($tranportConfig);
+                        $transportSymfonymailer['dsn'] = $dsn;
+                        Yii::$app->mailer->setTransport($transportSymfonymailer);
                     }
                 }
             }
@@ -357,6 +355,8 @@ class D3Mail
                     if ($sent) {
                         $this->setSendReceiveStatus(D3pop3SendReceiv::STATUS_SENT);
                         $this->saveSendReceive();
+                    } else {
+                        Yii::error(VarDumper::dumpAsString($transportSymfonymailer));
                     }
                     Yii::$app->mailer->setTransport($prevMailerConfig);
                     return $sent;
@@ -364,8 +364,8 @@ class D3Mail
                     $err = 'Send exception message: ' . $e->getMessage() . PHP_EOL
                        . $e->getTraceAsString() . PHP_EOL
                        . (
-                           isset($tranportConfig)
-                            ? 'Can not send email. ' . VarDumper::dumpAsString($tranportConfig)
+                           isset($transportSymfonymailer)
+                            ? 'Can not send email. ' . VarDumper::dumpAsString($transportSymfonymailer)
                             : 'Can not send by default mailer.'
                     );
 
