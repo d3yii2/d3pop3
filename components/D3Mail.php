@@ -257,18 +257,17 @@ class D3Mail
 
     /**
      * @return bool
-     * @throws \yii\base\InvalidConfigException
      */
     public function send(): bool
     {
-        $prevMailerConfig = Yii::$app->mailer->getTransport();
+        $mailer = clone Yii::$app->mailer;
         /** @var \d3yii2\d3pop3\d3pop3 $module */
         $module = Yii::$app->getModule('D3Pop3');
 
         try {
-            if($module->forceUseFileTransport){
-                Yii::$app->mailer->setTransport(['useFileTransport' => true]);
-            }else {
+            if ($module->forceUseFileTransport) {
+                $mailer->setTransport(['useFileTransport' => true]);
+            } else {
                 /**
                  * Set the custom SMTP connection if exists for this mailbox
                  */
@@ -297,12 +296,12 @@ class D3Mail
                             $dsn .= '?verify_peer=0';
                         }
                         $transportSymfonymailer['dsn'] = $dsn;
-                        Yii::$app->mailer->setTransport($transportSymfonymailer);
+                        $mailer->setTransport($transportSymfonymailer);
                     }
                 }
             }
             try {
-                $message = Yii::$app->mailer->compose()
+                $message = $mailer->compose()
                     ->setFrom($this->email->from)
                     ->setSubject($this->email->subject);
                 if ($this->email->body_plain) {
@@ -358,7 +357,6 @@ class D3Mail
                     } else {
                         Yii::error(VarDumper::dumpAsString($transportSymfonymailer));
                     }
-                    Yii::$app->mailer->setTransport($prevMailerConfig);
                     return $sent;
                 } catch (\Exception $e) {
                     $err = 'Send exception message: ' . $e->getMessage() . PHP_EOL
@@ -385,7 +383,6 @@ class D3Mail
                 . $e->getTraceAsString()
             );
         }
-        Yii::$app->mailer->setTransport($prevMailerConfig);
         return false;
     }
 
