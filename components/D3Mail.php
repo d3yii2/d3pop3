@@ -5,6 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3system\exceptions\D3ActiveRecordException;
 use d3system\exceptions\D3UserAlertException;
 use d3yii2\d3files\models\D3files;
+use d3yii2\d3pop3\d3pop3;
 use d3yii2\d3pop3\dictionaries\ConnectingSettingsDict;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use d3yii2\d3pop3\models\D3pop3Email;
@@ -261,7 +262,7 @@ class D3Mail
     public function send(): bool
     {
         $mailer = clone Yii::$app->mailer;
-        /** @var \d3yii2\d3pop3\d3pop3 $module */
+        /** @var d3pop3 $module */
         $module = Yii::$app->getModule('D3Pop3');
 
         try {
@@ -282,11 +283,11 @@ class D3Mail
                         ];
 
                         if (!empty($smtpConfig['user'])) {
-                            $dsn .= $smtpConfig['user'];
+                            $dsn .= urlencode($smtpConfig['user']);
                         }
 
                         if (!empty($smtpConfig['password'])) {
-                            $dsn .= ':' . $smtpConfig['password'];
+                            $dsn .= ':' . urlencode($smtpConfig['password']);
                         }
                         $dsn .= '@' . $smtpConfig['host'] . ':' . $smtpConfig['port'];
                         if (!empty($smtpConfig['ssl']) && TypeSmtpForm::SSL_ENCRYPTION_NONE !== $smtpConfig['ssl']) {
@@ -611,7 +612,7 @@ class D3Mail
     /**
      * @throws D3ActiveRecordException
      * @throws Exception
-     * @throws ForbiddenHttpException|\ReflectionException
+     * @throws ForbiddenHttpException|ReflectionException
      */
     public function save(): void
     {
@@ -773,7 +774,7 @@ class D3Mail
     /**
      * Save the relations: D3pop3EmailAddress, D3pop3SendReceiv, D3pop3EmailModel, Attachemnt contents
      * @throws D3ActiveRecordException
-     * @throws Exception|\ReflectionException
+     * @throws Exception|ReflectionException
      */
     public function saveRelations(): void
     {
