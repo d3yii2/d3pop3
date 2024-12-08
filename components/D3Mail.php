@@ -27,6 +27,7 @@ use yii\helpers\VarDumper;
 use yii\web\ForbiddenHttpException;
 use yii2d3\d3persons\models\User;
 use d3yii2\d3files\components\D3Files as D3FilesComponent;
+use d3yii2\d3files\models\D3filesModel;
 
 use function get_class;
 use function in_array;
@@ -219,9 +220,23 @@ class D3Mail
         $model = null
     ): self {
         $this->attachmentContentList[] = compact('fileName', 'content', 'model');
-
         return $this;
     }
+
+    public function addAttachmentD3files(
+        string $modelClass,
+        int $fileModelId,
+        string $fileName
+    ): self {
+        $this->attachmentContentList[] = [
+            'type' => 'd3files',
+            'fileName' => $fileName,
+            'modelClass' => $modelClass,
+            'fileModelId' => $fileModelId,
+        ];
+        return $this;
+    }
+
 
     public function getEmailId()
     {
@@ -647,10 +662,19 @@ class D3Mail
     public function saveAttachmentContentList(): void
     {
         foreach ($this->attachmentContentList as $attachment) {
-            $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
             $modelId = isset($attachment['model']) ? $attachment['model']->id : $this->email->id;
+            $modelClass = isset($attachment['model']) ? get_class($attachment['model']) : self::EMAIL_MODEL_CLASS;
+            if ($attachment['type']??null === 'd3files') {
+                D3filesModel::createCopy(
+                    $attachment['fileModelId'],
+                    $modelClass,
+                    $this->email->id
+                );
+                continue;
+            }
+
             $fileTypes = D3FilesComponent::getAllowedFileTypes($modelClass);
-            
+
             D3files::saveContent(
                 $attachment['fileName'],
                 $modelClass,
