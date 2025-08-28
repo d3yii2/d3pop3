@@ -12,7 +12,7 @@ use Yii;
 class D3pop3Email extends BaseD3pop3Email
 {
 
-    public const D3FILES_ALLOWED_EXT_REGEXP = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip|odt)$/i';
+    public const D3FILES_ALLOWED_EXT_REGEXP = '/(gif|pdf|dat|jpe?g|png|doc|docx|xls|xlsx|htm?l|txt|log|mxl|xml|zip|odt|csv|html|ods|asice)$/i';
 
     public function delete()
     {
