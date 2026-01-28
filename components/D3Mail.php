@@ -316,9 +316,14 @@ class D3Mail
                     }
                 }
             }
+            if ($this->email->from_name) {
+                $from = [$this->email->from => $this->email->from_name];
+            } else {
+                $from = $this->email->from;
+            }
             try {
                 $message = $mailer->compose()
-                    ->setFrom($this->email->from)
+                    ->setFrom($from)
                     ->setSubject($this->email->subject);
                 if ($this->email->body_plain) {
                     $message->setTextBody($this->email->body_plain);
