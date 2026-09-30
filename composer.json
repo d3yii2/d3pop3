@@ -15,7 +15,7 @@
         "d3yii2/d3files": "0.9.*",
         "d3yii2/d3system": "*",
         "unyii2/yii2-imap": "dev-master",
-        "webklex/php-imap": "*",
+        "d3yii2/d3imap": "*",
         "ext-curl": "*"
     },
     "autoload": {
