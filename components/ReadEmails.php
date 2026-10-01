@@ -6,11 +6,11 @@ use d3system\helpers\D3FileHelper;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use DateTime;
 use Exception;
-use unyii2\imap\IncomingMailAttachment;
+use d3yii2\d3imap\IncomingMailAttachment;
 use Yii;
 use d3yii2\d3pop3\models\D3pop3Email;
-use unyii2\imap\Mailbox;
-use unyii2\imap\ImapConnection;
+use d3yii2\d3imap\Mailbox;
+use d3yii2\d3imap\ImapConnection;
 use yii\helpers\FileHelper;
 use yii\helpers\VarDumper;
 
@@ -22,7 +22,7 @@ class ReadEmails
      * @param string $containerClass
      * @param bool $debug
      * @return bool
-     * @throws \unyii2\imap\Exception
+     * @throws \d3yii2\d3imap\Exception
      * @throws \yii\base\Exception
      * @throws \yii\db\Exception
      */

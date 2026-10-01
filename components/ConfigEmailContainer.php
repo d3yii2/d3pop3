@@ -4,7 +4,7 @@ namespace d3yii2\d3pop3\components;
 
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3pop3\models\D3pop3SendReceiv;
-use unyii2\imap\IncomingMail;
+use d3yii2\d3imap\IncomingMail;
 use Yii;
 
 class ConfigEmailContainer implements EmailContainerInerface {

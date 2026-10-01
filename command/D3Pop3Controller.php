@@ -4,7 +4,7 @@ namespace d3yii2\d3pop3\command;
 
 use d3system\commands\D3CommandController;
 use d3yii2\d3pop3\components\Action;
-use unyii2\imap\Exception;
+use d3yii2\d3imap\Exception;
 use Yii;
 use yii\console\Controller;
 use d3yii2\d3pop3\components\ReadEmails;
