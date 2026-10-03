@@ -145,4 +145,9 @@ class ConfigEmailContainer implements EmailContainerInerface {
     {
         return $this->currentData;
     }
+
+    public function getSysCompanyId()
+    {
+        return $this->currentData['sys_company_id'] ?? null;
+    }
 }
