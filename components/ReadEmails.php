@@ -5,8 +5,7 @@ namespace d3yii2\d3pop3\components;
 use d3system\helpers\D3FileHelper;
 use d3yii2\d3pop3\models\D3pop3ConnectingSettings;
 use DateTime;
-use Exception;
-use d3yii2\d3imap\IncomingMailAttachment;
+use Throwable;
 use Yii;
 use d3yii2\d3pop3\models\D3pop3Email;
 use d3yii2\d3imap\Mailbox;
@@ -21,10 +20,8 @@ class ReadEmails
      * @param EmailContainerInerface $cc
      * @param string $containerClass
      * @param bool $debug
-     * @return bool
-     * @throws \d3yii2\d3imap\Exception
+     * @return bool false, if some mailbox could not be read
      * @throws \yii\base\Exception
-     * @throws \yii\db\Exception
      */
     public static function readImap(EmailContainerInerface $cc, string $containerClass, bool $debug = true)
     {
@@ -47,19 +44,17 @@ class ReadEmails
                 $imapConnection->activeFolder = $cc->getActiveFolder();
             } catch (Throwable $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
-                    'connectionDetails: ' . VarDumper::dumpAsString($cc->dumConnectionData()) . PHP_EOL .
+                    'connectionDetails: ' . VarDumper::dumpAsString(self::hidePassword($cc->dumConnectionData())) . PHP_EOL .
                     'Error: ' . $e->getMessage() . PHP_EOL .
                      $e->getTraceAsString()
                 ;
-                if ($debug) {
-                    echo $message . PHP_EOL;
-                }
-                Yii::error($message);
-                Action::error($cc->getId(), $message);
+                self::error($cc, $message, $debug);
+                $error = true;
                 continue;
             }
 
-            $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
+            $connectionMessage = 'Connect to ' . $cc->getImapPath() . ' folder: ' . $cc->getActiveFolder()
+                . ' userName: ' . $cc->getUserName() . ' (id=' . $cc->getId() . ')';
             if ($debug) {
                 echo $connectionMessage . PHP_EOL;
             }
@@ -67,6 +62,7 @@ class ReadEmails
             /**
              * connect to IMAP
              */
+            $mailbox = null;
             try {
 
                 Action::read($cc->getId());
@@ -83,27 +79,36 @@ class ReadEmails
                     if ($debug) {
                         echo 'Mailbox is empty' . PHP_EOL;
                     }
+                    $mailbox->disconnect();
                     continue;
                 }
                 if ($debug) {
                     echo 'Messages count:' . count($mailsIds) . PHP_EOL;
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
                     'connectionMessage: ' . $connectionMessage . PHP_EOL .
-                    'Details: ' . print_r($cc->currentData, true) . PHP_EOL .
+                    'Details: ' . print_r(self::hidePassword($cc->dumConnectionData()), true) . PHP_EOL .
                     'Error: ' . $e->getMessage();
-                if ($debug) {
-                    echo $message . PHP_EOL;
+                self::error($cc, $message, $debug);
+                $error = true;
+                if ($mailbox) {
+                    $mailbox->disconnect();
                 }
-                Yii::error($message);
-                Action::error($cc->getId(), $message);
                 continue;
             }
             $expungeMails = false;
             foreach ($mailsIds as $i => $mailId) {
 
-                $msg = $mailbox->getMail($mailId);
+                try {
+                    $msg = $mailbox->getMail($mailId, false);
+                } catch (Throwable $e) {
+                    $message = 'Container class: ' . $containerClass . PHP_EOL .
+                        'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                        'Can not read mail UID ' . $mailId . ': ' . $e->getMessage();
+                    self::error($cc, $message, $debug, $e);
+                    continue;
+                }
                 if ($debug) {
                     echo $i . ' Subject:' . $msg->subject . PHP_EOL;
                     echo $i . ' Date:' . $msg->date . PHP_EOL;
@@ -120,8 +125,15 @@ class ReadEmails
                         if ($debug) {
                             echo $i . ' Delete message (expire days = ' . $cc->getDeleteAfterDays() . ') ' . PHP_EOL;
                         }
-                        $mailbox->deleteMail($mailId);
-                        $expungeMails = true;
+                        try {
+                            $mailbox->deleteMail($mailId);
+                            $expungeMails = true;
+                        } catch (Throwable $e) {
+                            $message = 'Container class: ' . $containerClass . PHP_EOL .
+                                'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                                'Can not delete mail UID ' . $mailId . ': ' . $e->getMessage();
+                            self::error($cc, $message, $debug, $e);
+                        }
                     }
                     continue;
                 }
@@ -167,37 +179,44 @@ class ReadEmails
                     }
 
                     foreach ($msg->getAttachments() as $t) {
-                        echo $i . ' A:' . $t->name . PHP_EOL;
+                        if ($debug) {
+                            echo $i . ' A:' . $t->name . PHP_EOL;
+                        }
                         $d3mail->addAttachment($t->name, $t->filePath);
                     }
                     $d3mail->save();
                     if($cc->getMarkAsRead()) {
-                        $mailbox->markMailAsRead($cc->getId());
+                        $mailbox->markMailAsRead($mailId);
                         $expungeMails = true;
                     }
 
                     $transaction->commit();
 
-                    echo PHP_EOL;
-                } catch (Exception $e) {
+                    if ($debug) {
+                        echo PHP_EOL;
+                    }
+                } catch (Throwable $e) {
                     $transaction->rollBack();
                     $message = 'Container class: ' . $containerClass . PHP_EOL .
                         'connectionDetails: ' . $connectionMessage . PHP_EOL .
                         'Error: ' . $e->getMessage()
                     ;
-                    if ($debug) {
-                        echo $message . PHP_EOL;
-                    }
-                    Yii::error($message . PHP_EOL . $e->getTraceAsString());
-                    Action::error($cc->getId(), $message);
+                    self::error($cc, $message, $debug, $e);
                     continue;
                 }
             }
 
             if($expungeMails){
-                $mailbox->expungeDeletedMails();
+                try {
+                    $mailbox->expungeDeletedMails();
+                } catch (Throwable $e) {
+                    $message = 'Container class: ' . $containerClass . PHP_EOL .
+                        'connectionDetails: ' . $connectionMessage . PHP_EOL .
+                        'Expunge error: ' . $e->getMessage();
+                    self::error($cc, $message, $debug, $e);
+                }
             }
-
+            $mailbox->disconnect();
         }
 
         /**
@@ -208,6 +227,23 @@ class ReadEmails
             unlink($f);
         }
         return !$error;
+    }
+
+    private static function error(EmailContainerInerface $cc, string $message, bool $debug, ?Throwable $e = null): void
+    {
+        if ($debug) {
+            echo $message . PHP_EOL;
+        }
+        Yii::error($message . ($e ? PHP_EOL . $e->getTraceAsString() : ''));
+        Action::error($cc->getId(), $message);
+    }
+
+    private static function hidePassword(array $connectionData): array
+    {
+        if (isset($connectionData['password'])) {
+            $connectionData['password'] = '***';
+        }
+        return $connectionData;
     }
 
 }
