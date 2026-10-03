@@ -26,6 +26,7 @@ interface EmailContainerInerface {
     public function getModelForattach(IncomingMail $msg);
 
     public function getImapPath();
+    public function getActiveFolder();
     public function getUserName();
     public function getPassword();
     public function getId();

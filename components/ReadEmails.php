@@ -44,7 +44,8 @@ class ReadEmails
                 $imapConnection->imapPassword = $cc->getPassword();
                 $imapConnection->serverEncoding = 'utf-8'; // utf-8 default.
                 $imapConnection->attachmentsDir = $tempDirectory;
-            } catch (Exception $e) {
+                $imapConnection->activeFolder = $cc->getActiveFolder();
+            } catch (Throwable $e) {
                 $message = 'Container class: ' . $containerClass . PHP_EOL .
                     'connectionDetails: ' . VarDumper::dumpAsString($cc->dumConnectionData()) . PHP_EOL .
                     'Error: ' . $e->getMessage() . PHP_EOL .

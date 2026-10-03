@@ -28,6 +28,9 @@ class ConfigEmailContainer implements EmailContainerInerface {
             return false;
         }
         $this->currentData = array_shift($this->data);
+        if (empty($this->currentData['activeFolder'])) {
+            $this->currentData['activeFolder'] = 'INBOX';
+        }
         $this->modelName = $this->currentData['model'];
         $this->modelSearchField = $this->currentData['model_search_field'];
         $this->serachByEmailField = $this->currentData['search_by_email_field'];
@@ -51,6 +54,11 @@ class ConfigEmailContainer implements EmailContainerInerface {
     public function getImapPath(): string
     {
         return '{' . $this->currentData['host'] . ':993/imap/ssl}INBOX';
+    }
+
+    public function getActiveFolder()
+    {
+        return $this->currentData['activeFolder'];
     }
 
     public function getUserName(){

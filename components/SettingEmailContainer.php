@@ -72,6 +72,8 @@ class SettingEmailContainer implements EmailContainerInerface {
             $this->currentData['directory'] = 'INBOX';
         }
 
+        $this->currentData['activeFolder'] = $settings['activeFolder'] ?? $this->currentData['directory'];
+
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
         $this->serachByEmailField = $dataRow->search_by_email_field;
@@ -100,6 +102,7 @@ class SettingEmailContainer implements EmailContainerInerface {
         $this->currentData['ssl'] = $settings['smtpSsl']?? $settings['ssl'];
         $this->currentData['port'] = (int)($settings['port']?? 110);
         $this->currentData['smtpPort'] = (int)($settings['smtpPort']?? 25);
+        $this->currentData['activeFolder'] = $settings['activeFolder'] ?? 'INBOX';
 
         $this->modelName = $dataRow->model;
         $this->modelSearchField = $dataRow->model_search_field;
@@ -119,6 +122,7 @@ class SettingEmailContainer implements EmailContainerInerface {
                 'password' => $this->currentData['password'],
                 'ssl' => $this->currentData['ssl'],
                 'port' => $this->currentData['port'],
+                'folder' => $this->getActiveFolder(),
         ];
     }
     
@@ -173,6 +177,12 @@ class SettingEmailContainer implements EmailContainerInerface {
     {
         return $this->currentData['deleteAfterDays'];
     }
+
+    public function getActiveFolder()
+    {
+        return $this->currentData['activeFolder'] ?? null;
+    }
+
 
     /**
      * @inheritdoc
