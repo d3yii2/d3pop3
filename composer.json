@@ -15,6 +15,7 @@
         "d3yii2/d3files": "0.9.*",
         "d3yii2/d3system": "*",
         "d3yii2/d3imap": "dev-master",
+        "soundasleep/html2text": "2.*",
         "ext-curl": "*"
     },
     "autoload": {
