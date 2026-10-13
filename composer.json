@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "d3yii2/d3files": "0.9.*",
+        "d3yii2/d3files": "dev-php8.4",
         "d3yii2/d3system": "*",
         "d3yii2/d3imap": "dev-master",
         "soundasleep/html2text": "2.*",
